@@ -48,29 +48,34 @@ const supabase = {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : 'return=representation'
+      'Prefer': 'return=representation'
     };
-    
+
     const url = `${SUPABASE_URL}/rest/v1/${table}`;
     const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
-    
+
     const response = await fetch(url, options);
+    if (response.status === 204) return [];
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `HTTP ${response.status}`);
+    }
     return response.json();
   },
-  
+
   async getMenu() {
     const data = await this.fetch('menu_data?id=eq.main&select=*');
     return data[0] || null;
   },
-  
+
   async saveMenu(menu, specials) {
-    const data = await this.fetch('menu_data?id=eq.main', 'PATCH', {
-      menu: menu,
-      specials: specials,
-      updated_at: new Date().toISOString()
-    });
-    return data;
+    const payload = { menu, specials, updated_at: new Date().toISOString() };
+    // Try PATCH first; if no row matched (empty array), INSERT instead
+    const patched = await this.fetch('menu_data?id=eq.main', 'PATCH', payload);
+    if (Array.isArray(patched) && patched.length === 0) {
+      await this.fetch('menu_data', 'POST', { id: 'main', ...payload });
+    }
   }
 };
 
@@ -224,12 +229,14 @@ const defaultSpecials = [
 ];
 
 // Sync status helper
+let _syncTimer = null;
 function showSyncStatus(status, message) {
   const el = document.getElementById('sync-status');
+  if (_syncTimer) { clearTimeout(_syncTimer); _syncTimer = null; }
   el.className = 'sync-indicator ' + status;
   el.textContent = message;
   if (status === 'saved') {
-    setTimeout(() => { el.style.display = 'none'; }, 2000);
+    _syncTimer = setTimeout(() => { el.style.display = 'none'; _syncTimer = null; }, 2000);
   }
 }
 
@@ -583,7 +590,7 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
         type: 'password',
         value: pin,
         onChange: ev => setPin(ev.target.value),
-        onKeyPress: ev => ev.key === 'Enter' && onSubmit(),
+        onKeyDown: ev => ev.key === 'Enter' && onSubmit(),
         placeholder: '****',
         style: { width: '100%', padding: '12px', fontSize: '24px', textAlign: 'center', border: '2px solid #e2e8f0', borderRadius: '8px', letterSpacing: '8px', boxSizing: 'border-box' }
       }),
@@ -680,7 +687,7 @@ function AddModal({ lang, onSave, onClose }) {
     setIsTranslating(true);
     try {
       const results = await Promise.all(['en','es','fr','de'].map(async tl => {
-        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + tl);
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + tl, { signal: AbortSignal.timeout(8000) });
         const data = await res.json();
         return [tl, sanitizeText(data.responseData?.translatedText || formData.name.it)];
       }));
@@ -772,12 +779,11 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
   const [translatedItems, setTranslatedItems] = useState([]);
 
   const updateItem = (idx, field, value, subfield) => {
-    const newItems = [...items];
-    if (subfield) {
-      newItems[idx][field][subfield] = value;
-    } else {
-      newItems[idx][field] = value;
-    }
+    const newItems = items.map((item, i) => {
+      if (i !== idx) return item;
+      if (subfield) return { ...item, [field]: { ...item[field], [subfield]: value } };
+      return { ...item, [field]: value };
+    });
     setItems(newItems);
     if (subfield === 'it') setTranslatedItems(prev => prev.filter(i => i !== idx));
   };
@@ -788,14 +794,14 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
     try {
       const langs = ['en','es','fr','de'];
       const nameResults = await Promise.all(langs.map(async tl => {
-        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + tl);
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + tl, { signal: AbortSignal.timeout(8000) });
         const data = await res.json();
         return [tl, sanitizeText(data.responseData?.translatedText || items[idx].name.it)];
       }));
       let descResults = [];
       if (items[idx].description.it.trim()) {
         descResults = await Promise.all(langs.map(async tl => {
-          const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + tl);
+          const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + tl, { signal: AbortSignal.timeout(8000) });
           const data = await res.json();
           return [tl, sanitizeText(data.responseData?.translatedText || items[idx].description.it, 500)];
         }));
@@ -906,7 +912,7 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
   );
 }
 
-ReactDOM.render(e(App), document.getElementById('root'));
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
   </script>
 </body>
 </html>
