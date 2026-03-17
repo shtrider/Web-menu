@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu - Borgo della Mistica | Hampton by Hilton</title>
+  <meta name="description" content="Menu digitale del ristorante Borgo della Mistica presso Hampton by Hilton">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(135deg, #fff8f5 0%, #fff 100%); min-height: 100vh; }
+    .loading-screen { position: fixed; inset: 0; background: #ca4d4f; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+    .loading-screen h1 { color: #fff; font-size: 32px; margin-bottom: 20px; }
+    .loading-screen .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sync-indicator { position: fixed; bottom: 20px; right: 20px; padding: 8px 16px; border-radius: 8px; font-size: 12px; z-index: 100; display: none; }
+    .sync-indicator.saving { display: block; background: #ffd700; color: #333; }
+    .sync-indicator.saved { display: block; background: #38a169; color: #fff; }
+    .sync-indicator.error { display: block; background: #e53e3e; color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading-screen">
+    <img src="logo.png" alt="Borgo della Mistica" style="height:80px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:24px;">
+    <div class="spinner"></div>
+  </div>
+  <div id="sync-status" class="sync-indicator"></div>
+  <div id="root"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script>
+// Supabase Configuration
+const SUPABASE_URL = 'https://rzmscyptpkfhbatiouqk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__xWtEGf1yvEjt8gy_RGV_g_-OkLGkcX';
+
+// Supabase API helper
+const supabase = {
+  async fetch(table, method = 'GET', body = null) {
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : 'return=representation'
+    };
+    
+    const url = `${SUPABASE_URL}/rest/v1/${table}`;
+    const options = { method, headers };
+    if (body) options.body = JSON.stringify(body);
+    
+    const response = await fetch(url, options);
+    return response.json();
+  },
+  
+  async getMenu() {
+    const data = await this.fetch('menu_data?id=eq.main&select=*');
+    return data[0] || null;
+  },
+  
+  async saveMenu(menu, specials) {
+    const data = await this.fetch('menu_data?id=eq.main', 'PATCH', {
+      menu: menu,
+      specials: specials,
+      updated_at: new Date().toISOString()
+    });
+    return data;
+  }
+};
+
+const e = React.createElement;
+const { useState, useEffect, useRef } = React;
+
+const ALLERGENS = {
+  gluten: { name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten' }},
+  dairy: { name: { it: 'Latticini', en: 'Dairy', es: 'Lácteos', fr: 'Produits laitiers', de: 'Milch' }},
+  nuts: { name: { it: 'Frutta a guscio', en: 'Nuts', es: 'Frutos secos', fr: 'Noix', de: 'Nüsse' }},
+  fish: { name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch' }},
+  shellfish: { name: { it: 'Crostacei', en: 'Shellfish', es: 'Mariscos', fr: 'Crustacés', de: 'Schalentiere' }},
+  eggs: { name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier' }},
+  soy: { name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja' }},
+  celery: { name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie' }},
+  mustard: { name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf' }},
+  sesame: { name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam' }},
+  sulfites: { name: { it: 'Solfiti', en: 'Sulfites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite' }},
+  pork: { name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein' }}
+};
+
+const AllergenIcon = ({ type, lang }) => {
+  const icons = {
+    gluten: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M12 2v20M8 6c0-2 4-2 4 0v4c0 2-4 2-4 0V6zM16 6c0-2-4-2-4 0M8 14c0-2 4-2 4 0v4c0 2-4 2-4 0v-4zM16 14c0-2-4-2-4 0' })),
+    dairy: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M8 2h8l1 5H7l1-5zM7 7h10v2a2 2 0 01-2 2H9a2 2 0 01-2-2V7zM9 11h6v9a2 2 0 01-2 2h-2a2 2 0 01-2-2v-9z' })),
+    nuts: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('ellipse', { cx: 12, cy: 14, rx: 6, ry: 7 }),
+      e('path', { d: 'M9 7c0-3 6-3 6 0M12 7v3' })),
+    fish: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7zM18 12l4-3v6l-4-3zM9 12a1 1 0 102 0 1 1 0 00-2 0' })),
+    shellfish: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M4 12c0-5 3.5-8 8-8s8 3 8 8M4 12c0 4 3.5 8 8 8s8-4 8-8M4 12h16M8 6v12M12 4v16M16 6v12' })),
+    eggs: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('ellipse', { cx: 12, cy: 14, rx: 7, ry: 8 }),
+      e('ellipse', { cx: 12, cy: 15, rx: 3, ry: 3.5 })),
+    soy: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M6 12c0-4 2.5-8 6-8s6 4 6 8-2.5 8-6 8-6-4-6-8zM8 10a2 2 0 104 0 2 2 0 00-4 0zM12 14a2 2 0 104 0 2 2 0 00-4 0' })),
+    celery: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M12 22V8M12 8c-2-4-5-5-5-5s1 3 0 5c-1 2 1 5 5 5M12 8c2-4 5-5 5-5s-1 3 0 5c1 2-1 5-5 5' })),
+    mustard: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M9 3h6v3H9zM8 6h8l1 4H7l1-4zM7 10h10v10a2 2 0 01-2 2H9a2 2 0 01-2-2V10z' })),
+    sesame: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('ellipse', { cx: 8, cy: 8, rx: 2.5, ry: 4, transform: 'rotate(-30 8 8)' }),
+      e('ellipse', { cx: 16, cy: 10, rx: 2.5, ry: 4, transform: 'rotate(20 16 10)' }),
+      e('ellipse', { cx: 10, cy: 17, rx: 2.5, ry: 4, transform: 'rotate(-10 10 17)' })),
+    sulfites: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('path', { d: 'M8 22h8M12 22v-9M7 2l1 4h8l1-4M8 6c0 4-3 5-3 8a7 7 0 0014 0c0-3-3-4-3-8' })),
+    pork: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
+      e('circle', { cx: 12, cy: 12, r: 8 }),
+      e('ellipse', { cx: 9, cy: 10, rx: 1.5, ry: 2 }),
+      e('ellipse', { cx: 15, cy: 10, rx: 1.5, ry: 2 }),
+      e('ellipse', { cx: 12, cy: 14, rx: 3, ry: 2 }),
+      e('circle', { cx: 10.5, cy: 14, r: 0.8, fill: '#555' }),
+      e('circle', { cx: 13.5, cy: 14, r: 0.8, fill: '#555' }))
+  };
+  return e('span', { title: ALLERGENS[type]?.name[lang] || type, style: { cursor: 'help', display: 'inline-flex' } }, icons[type] || null);
+};
+
+const LANGUAGES = [
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+];
+
+const CATEGORY_NAMES = {
+  appetizers: { it: 'Antipasti', en: 'Appetizers', es: 'Entrantes', fr: 'Entrées', de: 'Vorspeisen' },
+  primi: { it: 'Primi Piatti', en: 'First Courses', es: 'Primeros Platos', fr: 'Premiers Plats', de: 'Erste Gänge' },
+  secondi: { it: 'Secondi', en: 'Main Courses', es: 'Segundos', fr: 'Plats Principaux', de: 'Hauptgerichte' },
+  contorni: { it: 'Contorni', en: 'Side Dishes', es: 'Guarniciones', fr: 'Accompagnements', de: 'Beilagen' },
+  dessert: { it: 'Dolci', en: 'Desserts', es: 'Postres', fr: 'Desserts', de: 'Nachspeisen' },
+  softdrinks: { it: 'Bevande', en: 'Soft Drinks', es: 'Refrescos', fr: 'Boissons', de: 'Softdrinks' },
+  wine: { it: 'Vini', en: 'Wines', es: 'Vinos', fr: 'Vins', de: 'Weine' },
+  beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere' },
+  cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails' },
+  spirits: { it: 'Liquori', en: 'Spirits', es: 'Licores', fr: 'Spiritueux', de: 'Spirituosen' }
+};
+
+const defaultMenu = {
+  appetizers: [
+    { id: 1, name: { it: 'Battuta di Black Angus con crema di peperoni arrosto e nocciole tostate', en: 'Black Angus tartare with roasted pepper cream and toasted hazelnuts', es: 'Tartar de Black Angus con crema de pimientos asados y avellanas tostadas', fr: 'Tartare de Black Angus avec crème de poivrons rôtis et noisettes grillées', de: 'Black Angus Tartar mit gerösteter Paprikacreme und gerösteten Haselnüssen' }, price: 16, allergens: ['nuts'], image: '' },
+    { id: 2, name: { it: 'Bruschettine con lardo di Colonnata, castagne e miele', en: 'Bruschettas with Colonnata lard, chestnuts and honey', es: 'Bruschetas con lardo de Colonnata, castañas y miel', fr: 'Bruschettas au lard de Colonnata, châtaignes et miel', de: 'Bruschetta mit Colonnata Speck, Kastanien und Honig' }, price: 7, allergens: ['gluten', 'pork'], image: '' },
+    { id: 3, name: { it: 'Flan di cavolfiore con fonduta al Parmigiano Reggiano con chips di porro', en: 'Cauliflower flan with Parmigiano Reggiano fondue and leek chips', es: 'Flan de coliflor con fonduta de Parmigiano Reggiano y chips de puerro', fr: 'Flan de chou-fleur avec fondue au Parmigiano Reggiano et chips de poireau', de: 'Blumenkohlpudding mit Parmigiano Reggiano Fondue und Lauch-Chips' }, price: 7, allergens: ['dairy', 'eggs'], image: '' },
+    { id: 4, name: { it: 'Selezione di salumi e formaggi artigianali con miele di castagno', en: 'Selection of local cold cuts and cheeses with chestnut honey', es: 'Selección de embutidos y quesos artesanales con miel de castaña', fr: 'Sélection de charcuteries et fromages artisanaux avec miel de châtaignier', de: 'Auswahl an hausgemachten Wurstwaren und Käse mit Kastanienhonig' }, price: 12, allergens: ['dairy', 'pork'], image: '' },
+    { id: 5, name: { it: 'Focaccia olio EVO e rosmarino', en: 'Focaccia with EVO oil and rosemary', es: 'Focaccia con aceite de oliva y romero', fr: 'Focaccia à l\'huile d\'olive et romarin', de: 'Focaccia mit Olivenöl und Rosmarin' }, price: 5, allergens: ['gluten'], image: '' }
+  ],
+  primi: [
+    { id: 6, name: { it: 'Spaghetti al ragù bolognese', en: 'Spaghetti in Bolognese sauce', es: 'Espaguetis a la boloñesa', fr: 'Spaghetti à la bolognaise', de: 'Spaghetti Bolognese' }, price: 14, allergens: ['gluten', 'celery'], image: '' },
+    { id: 7, name: { it: 'Gnocchi di zucca con taleggio e noci', en: 'Pumpkin gnocchi with taleggio cheese and walnuts', es: 'Ñoquis de calabaza con taleggio y nueces', fr: 'Gnocchi de potiron au taleggio et noix', de: 'Kürbis-Gnocchi mit Taleggio und Walnüssen' }, price: 14, allergens: ['gluten', 'dairy', 'nuts', 'eggs'], image: '' },
+    { id: 8, name: { it: 'Primo della tradizione romana del giorno', en: 'Traditional Roman pasta dish of the day', es: 'Primer plato de la tradición romana del día', fr: 'Plat de pâtes traditionnel romain du jour', de: 'Traditionelles römisches Pasta-Gericht des Tages' }, price: 12, allergens: ['gluten'], image: '' },
+    { id: 9, name: { it: 'Zuppa del giorno', en: 'Soup of the day', es: 'Sopa del día', fr: 'Soupe du jour', de: 'Tagessuppe' }, price: 12, allergens: [], image: '' }
+  ],
+  secondi: [
+    { id: 10, name: { it: 'Bistecca di manzo danese 250gr con patate brasate e pesto rosso', en: 'Danish beef steak (250g) with braised potatoes and red pesto', es: 'Bistec de ternera danés 250g con patatas estofadas y pesto rojo', fr: 'Steak de bœuf danois 250g avec pommes de terre braisées et pesto rouge', de: 'Dänisches Rindersteak 250g mit geschmorten Kartoffeln und rotem Pesto' }, price: 25, allergens: ['nuts'], image: '' },
+    { id: 11, name: { it: 'Tagliata di pollo speziato con funghi arrosto', en: 'Spiced half-chicken with roasted mushrooms', es: 'Pollo especiado en rodajas con setas asadas', fr: 'Poulet épicé tranché avec champignons rôtis', de: 'Gewürztes Hähnchen in Scheiben mit gerösteten Pilzen' }, price: 20, allergens: [], image: '' },
+    { id: 12, name: { it: 'Baccalà alla romana', en: 'Roman-style (stewed) cod fish served with roasted potatoes', es: 'Bacalao a la romana con patatas asadas', fr: 'Morue à la romaine avec pommes de terre rôties', de: 'Kabeljau auf römische Art mit Bratkartoffeln' }, price: 20, allergens: ['fish', 'gluten'], image: '' },
+    { id: 13, name: { it: 'Burger di scottona con verza viola, provola affumicata, bacon croccante e maionese alla n\'duja', en: 'Scottona beef burger with purple cabbage, smoked provola, crispy bacon and mayonnaise with \'nduja', es: 'Hamburguesa de scottona con col lombarda, provola ahumada, bacon crujiente y mayonesa de \'nduja', fr: 'Burger de scottona avec chou rouge, provola fumée, bacon croustillant et mayonnaise à la \'nduja', de: 'Scottona Burger mit Rotkohl, geräuchertem Provola, knusprigem Speck und \'Nduja-Mayonnaise' }, price: 16, allergens: ['gluten', 'dairy', 'eggs', 'pork'], image: '' }
+  ],
+  contorni: [
+    { id: 14, name: { it: 'Patate al forno', en: 'Roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Bratkartoffeln' }, price: 6, allergens: [], image: '' },
+    { id: 15, name: { it: 'Broccoletti ripassati', en: 'Sautéed broccoli raab', es: 'Brócoli salteado', fr: 'Brocoli sauté', de: 'Gebratener Brokkoli' }, price: 6, allergens: [], image: '' },
+    { id: 16, name: { it: 'Insalata mista', en: 'Mixed garden salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat' }, price: 6, allergens: [], image: '' },
+    { id: 17, name: { it: 'Verdura del giorno', en: 'Vegetable of the day', es: 'Verdura del día', fr: 'Légume du jour', de: 'Tagesgemüse' }, price: 6, allergens: [], image: '' }
+  ],
+  dessert: [
+    { id: 18, name: { it: 'Tiramisù', en: 'Classic tiramisu', es: 'Tiramisú clásico', fr: 'Tiramisu classique', de: 'Klassisches Tiramisu' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
+    { id: 19, name: { it: 'Crumble pere e cioccolato', en: 'Pear and chocolate crumble', es: 'Crumble de pera y chocolate', fr: 'Crumble poire et chocolat', de: 'Birnen-Schokoladen-Crumble' }, price: 6, allergens: ['gluten', 'dairy', 'nuts'], image: '' },
+    { id: 20, name: { it: 'Dolce del giorno', en: 'Dessert of the day', es: 'Postre del día', fr: 'Dessert du jour', de: 'Dessert des Tages' }, price: 6, allergens: [], image: '' }
+  ],
+  softdrinks: [
+    { id: 21, name: { it: 'Acqua minerale', en: 'Mineral water', es: 'Agua mineral', fr: 'Eau minérale', de: 'Mineralwasser' }, price: 2, allergens: [], image: '' },
+    { id: 22, name: { it: 'Coca-Cola / Coca-Cola Zero / Sprite', en: 'Coke / Coke Zero / Sprite', es: 'Coca-Cola / Coca-Cola Zero / Sprite', fr: 'Coca-Cola / Coca-Cola Zero / Sprite', de: 'Cola / Cola Zero / Sprite' }, price: 3, allergens: [], image: '' }
+  ],
+  wine: [
+    { id: 23, name: { it: 'Vino rosso / bianco / spumante (calice)', en: 'Red / white / sparkling wine (glass)', es: 'Vino tinto / blanco / espumoso (copa)', fr: 'Vin rouge / blanc / mousseux (verre)', de: 'Rot- / Weiß- / Schaumwein (Glas)' }, price: 8, allergens: ['sulfites'], image: '' }
+  ],
+  beer: [
+    { id: 24, name: { it: 'Birra Peroni Capri / Raffo', en: 'Peroni Capri / Raffo beer', es: 'Cerveza Peroni Capri / Raffo', fr: 'Bière Peroni Capri / Raffo', de: 'Peroni Capri / Raffo Bier' }, price: 5, allergens: ['gluten'], image: '' },
+    { id: 25, name: { it: 'Birra alla spina Nastro Azzurro 40cl', en: 'Draught Nastro Azzurro 40cl', es: 'Cerveza de barril Nastro Azzurro 40cl', fr: 'Bière pression Nastro Azzurro 40cl', de: 'Nastro Azzurro vom Fass 40cl' }, price: 6, allergens: ['gluten'], image: '' }
+  ],
+  cocktails: [
+    { id: 26, name: { it: 'Cocktail classico', en: 'Classic cocktail', es: 'Cóctel clásico', fr: 'Cocktail classique', de: 'Klassischer Cocktail' }, price: 10, allergens: ['sulfites'], image: '' },
+    { id: 27, name: { it: 'Spritz Aperol', en: 'Aperol Spritz', es: 'Spritz Aperol', fr: 'Spritz Aperol', de: 'Aperol Spritz' }, price: 8, allergens: ['sulfites'], image: '' },
+    { id: 28, name: { it: 'Negroni', en: 'Negroni', es: 'Negroni', fr: 'Negroni', de: 'Negroni' }, price: 10, allergens: ['sulfites'], image: '' }
+  ],
+  spirits: [
+    { id: 29, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa' }, price: 6, allergens: ['sulfites'], image: '' },
+    { id: 30, name: { it: 'Amaro', en: 'Amaro (digestif)', es: 'Amaro (digestivo)', fr: 'Amaro (digestif)', de: 'Amaro (Digestif)' }, price: 5, allergens: [], image: '' },
+    { id: 31, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello' }, price: 5, allergens: [], image: '' }
+  ]
+};
+
+const defaultSpecials = [
+  { id: 101, name: { it: 'Carbonara tradizionale', en: 'Traditional carbonara', es: 'Carbonara tradicional', fr: 'Carbonara traditionnelle', de: 'Traditionelle Carbonara' }, price: 14, description: { it: 'Con guanciale croccante e pecorino romano DOP', en: 'With crispy guanciale and DOP pecorino romano', es: 'Con guanciale crujiente y pecorino romano DOP', fr: 'Avec guanciale croustillant et pecorino romano DOP', de: 'Mit knusprigem Guanciale und DOP Pecorino Romano' }},
+  { id: 102, name: { it: 'Filetto di branzino', en: 'Sea bass fillet', es: 'Filete de lubina', fr: 'Filet de bar', de: 'Wolfsbarschfilet' }, price: 22, description: { it: 'Con verdure di stagione e salsa agli agrumi', en: 'With seasonal vegetables and citrus sauce', es: 'Con verduras de temporada y salsa de cítricos', fr: 'Avec légumes de saison et sauce aux agrumes', de: 'Mit saisonalem Gemüse und Zitrussauce' }}
+];
+
+// Sync status helper
+function showSyncStatus(status, message) {
+  const el = document.getElementById('sync-status');
+  el.className = 'sync-indicator ' + status;
+  el.textContent = message;
+  if (status === 'saved') {
+    setTimeout(() => { el.style.display = 'none'; }, 2000);
+  }
+}
+
+function App() {
+  const [menu, setMenu] = useState(defaultMenu);
+  const [specials, setSpecials] = useState(defaultSpecials);
+  const [showSpecials, setShowSpecials] = useState(true);
+  const [lang, setLang] = useState('it');
+  const [mainTab, setMainTab] = useState('kitchen');
+  const [subCategory, setSubCategory] = useState('appetizers');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pin, setPin] = useState('');
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditSpecials, setShowEditSpecials] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const clickCount = useRef(0);
+  const clickTimer = useRef(null);
+
+  const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
+  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+
+  // Load menu from Supabase on startup
+  useEffect(() => {
+    async function loadMenu() {
+      try {
+        const data = await supabase.getMenu();
+        if (data && data.menu && Object.keys(data.menu).length > 0) {
+          setMenu(data.menu);
+          setSpecials(data.specials || defaultSpecials);
+        } else {
+          // Initialize database with default menu
+          await supabase.saveMenu(defaultMenu, defaultSpecials);
+        }
+      } catch (error) {
+        console.error('Error loading menu:', error);
+      } finally {
+        setIsLoading(false);
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+    loadMenu();
+  }, []);
+
+  // Save to Supabase when menu changes (admin only)
+  const saveToSupabase = async (newMenu, newSpecials) => {
+    showSyncStatus('saving', '💾 Salvando...');
+    try {
+      await supabase.saveMenu(newMenu, newSpecials);
+      showSyncStatus('saved', '✅ Salvato!');
+    } catch (error) {
+      console.error('Error saving:', error);
+      showSyncStatus('error', '❌ Errore di salvataggio');
+    }
+  };
+
+  const handleCopyrightClick = () => {
+    clickCount.current++;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 400);
+    if (clickCount.current >= 2) {
+      clickCount.current = 0;
+      if (!isAdmin) setShowPinModal(true);
+    }
+  };
+
+  const checkPin = () => {
+    if (pin === '1234') {
+      setIsAdmin(true);
+      setShowPinModal(false);
+      setPin('');
+    } else {
+      alert('PIN errato!');
+      setPin('');
+    }
+  };
+
+  const deleteItem = (cat, id) => {
+    if (confirm('Eliminare questo elemento?')) {
+      const newMenu = { ...menu, [cat]: menu[cat].filter(i => i.id !== id) };
+      setMenu(newMenu);
+      saveToSupabase(newMenu, specials);
+    }
+  };
+
+  const saveEditItem = (item) => {
+    const newMenu = {
+      ...menu,
+      [subCategory]: menu[subCategory].map(i => i.id === item.id ? item : i)
+    };
+    setMenu(newMenu);
+    saveToSupabase(newMenu, specials);
+    setShowEditModal(false);
+    setEditItem(null);
+  };
+
+  const addNewItem = (item) => {
+    const newId = Math.max(...Object.values(menu).flat().map(i => i.id)) + 1;
+    const newMenu = {
+      ...menu,
+      [subCategory]: [...menu[subCategory], { ...item, id: newId }]
+    };
+    setMenu(newMenu);
+    saveToSupabase(newMenu, specials);
+    setShowAddModal(false);
+  };
+
+  const saveSpecials = (newSpecials) => {
+    setSpecials(newSpecials);
+    saveToSupabase(menu, newSpecials);
+    setShowEditSpecials(false);
+  };
+
+  useEffect(() => {
+    if (mainTab === 'kitchen' && !kitchenCats.includes(subCategory)) {
+      setSubCategory('appetizers');
+    } else if (mainTab === 'bar' && !barCats.includes(subCategory)) {
+      setSubCategory('softdrinks');
+    }
+  }, [mainTab]);
+
+  const currentItems = menu[subCategory] || [];
+
+  if (isLoading) return null;
+
+  return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: 'linear-gradient(135deg, #fff8f5 0%, #fff 100%)' }},
+    showSpecials && e(SpecialsPopup, { specials, lang, onClose: () => setShowSpecials(false) }),
+    showPinModal && e(PinModal, { pin, setPin, onSubmit: checkPin, onClose: () => { setShowPinModal(false); setPin(''); }}),
+    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }}),
+    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => setShowAddModal(false) }),
+    showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
+    
+    e('header', { style: { background: '#ca4d4f', padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
+      e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain', background: '#fff', padding: '6px 16px', borderRadius: '10px' }}),
+      e('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }},
+        e('div', { style: { position: 'relative' }},
+          e('button', { 
+            onClick: () => setShowLangMenu(!showLangMenu),
+            style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }
+          }, LANGUAGES.find(l => l.code === lang)?.flag, ' ', LANGUAGES.find(l => l.code === lang)?.name),
+          showLangMenu && e('div', { 
+            style: { position: 'absolute', top: '100%', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }
+          },
+            LANGUAGES.map(l => e('button', {
+              key: l.code,
+              onClick: () => { setLang(l.code); setShowLangMenu(false); },
+              style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? '#ca4d4f' : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
+            }, l.flag, ' ', l.name))
+          )
+        ),
+        e('button', {
+          onClick: () => setShowSpecials(true),
+          style: { background: '#1a365d', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px' }
+        }, '📋 ', lang === 'it' ? 'Speciali' : lang === 'es' ? 'Especiales' : lang === 'fr' ? 'Spécialités' : lang === 'de' ? 'Tagesgerichte' : 'Specials'),
+        isAdmin && e('button', {
+          onClick: () => setShowEditSpecials(true),
+          style: { background: '#2d3748', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '12px' }
+        }, '✏️'),
+        isAdmin && e('button', {
+          onClick: () => setIsAdmin(false),
+          style: { background: '#c53030', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px' }
+        }, '🔓 Esci')
+      )
+    ),
+    
+    e('nav', { style: { background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 24px', overflowX: 'auto' }},
+      e('div', { style: { display: 'flex', gap: '0' }},
+        e('button', {
+          onClick: () => setMainTab('kitchen'),
+          style: { padding: '16px 32px', border: 'none', background: mainTab === 'kitchen' ? '#ca4d4f' : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+        }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : 'Kitchen'),
+        e('button', {
+          onClick: () => setMainTab('bar'),
+          style: { padding: '16px 32px', border: 'none', background: mainTab === 'bar' ? '#ca4d4f' : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+        }, '🍸 Bar')
+      )
+    ),
+    
+    e('div', { style: { display: 'flex', gap: '8px', padding: '16px 24px', background: '#f7fafc', flexWrap: 'wrap' }},
+      (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat => 
+        e('button', {
+          key: cat,
+          onClick: () => setSubCategory(cat),
+          style: { padding: '10px 20px', border: subCategory === cat ? '2px solid #ca4d4f' : '1px solid #e2e8f0', background: subCategory === cat ? '#fff' : '#fff', color: subCategory === cat ? '#ca4d4f' : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400' }
+        }, CATEGORY_NAMES[cat]?.[lang] || cat)
+      )
+    ),
+    
+    e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
+      e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
+        e('h2', { style: { margin: 0, color: '#ca4d4f', fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+        isAdmin && e('button', {
+          onClick: () => setShowAddModal(true),
+          style: { background: '#38a169', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
+        }, '+ ', lang === 'it' ? 'Aggiungi' : 'Add')
+      ),
+      
+      e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
+        currentItems.map(item => 
+          e('div', { 
+            key: item.id,
+            style: { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', display: 'flex', gap: '16px', alignItems: 'flex-start' }
+          },
+            lang !== 'it' && item.image && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }}),
+            e('div', { style: { flex: 1 }},
+              e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
+                e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: '#2d3748', flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
+                e('span', { style: { fontSize: '18px', fontWeight: '600', color: '#ca4d4f', whiteSpace: 'nowrap' }}, '€ ', item.price.toFixed(2))
+              ),
+              item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
+                item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
+              ),
+              isAdmin && e('div', { style: { display: 'flex', gap: '8px', marginTop: '12px' }},
+                e('button', {
+                  onClick: () => { setEditItem(item); setShowEditModal(true); },
+                  style: { background: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
+                }, '✏️ Modifica'),
+                e('button', {
+                  onClick: () => deleteItem(subCategory, item.id),
+                  style: { background: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
+                }, '🗑️ Elimina')
+              )
+            )
+          )
+        )
+      ),
+      
+      e('div', { style: { marginTop: '32px', padding: '16px', background: '#f7fafc', borderRadius: '12px' }},
+        e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Legenda Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : 'Allergen Legend'),
+        e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
+          Object.entries(ALLERGENS).map(([key, val]) => 
+            e('span', { key, style: { fontSize: '12px', color: '#4a5568', display: 'flex', alignItems: 'center', gap: '6px' }}, 
+              e(AllergenIcon, { type: key, lang }),
+              ' ', val.name[lang]
+            )
+          )
+        )
+      )
+    ),
+    
+    e('footer', { style: { textAlign: 'center', padding: '24px', color: '#a0aec0', fontSize: '12px' }},
+      e('span', { 
+        onClick: handleCopyrightClick,
+        style: { cursor: 'default', userSelect: 'none' }
+      }, '© ' + new Date().getFullYear() + ' Borgo della Mistica - Hampton by Hilton')
+    )
+  );
+}
+
+function SpecialsPopup({ specials, lang, onClose }) {
+  return e('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' },
+    onClick: onClose
+  },
+    e('div', {
+      style: { 
+        background: '#2c3e2c', 
+        borderRadius: '12px', 
+        padding: '40px', 
+        maxWidth: '500px', 
+        width: '100%',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 0 100px rgba(0,0,0,0.3)',
+        border: '12px solid #5c4033',
+        position: 'relative'
+      },
+      onClick: ev => ev.stopPropagation()
+    },
+      e('div', { style: { position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '16px', background: '#8b4513', borderRadius: '4px' }}),
+      e('h2', { 
+        style: { 
+          fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", 
+          color: '#f5f5dc', 
+          textAlign: 'center', 
+          fontSize: '28px', 
+          marginBottom: '24px',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+          letterSpacing: '2px'
+        }
+      }, lang === 'it' ? '✨ Speciali del Giorno ✨' : lang === 'es' ? '✨ Especiales del Día ✨' : lang === 'fr' ? '✨ Spécialités du Jour ✨' : lang === 'de' ? '✨ Tagesgerichte ✨' : '✨ Daily Specials ✨'),
+      specials.map(item => 
+        e('div', { key: item.id, style: { marginBottom: '24px', borderBottom: '1px dashed rgba(245,245,220,0.3)', paddingBottom: '16px' }},
+          e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }},
+            e('h3', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: '#ffd700', fontSize: '20px', margin: 0, textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}, item.name[lang] || item.name.it),
+            e('span', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: '#98fb98', fontSize: '18px' }}, '€', item.price)
+          ),
+          e('p', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: 'rgba(245,245,220,0.8)', fontSize: '14px', margin: '8px 0 0', fontStyle: 'italic' }}, item.description[lang] || item.description.it)
+        )
+      ),
+      e('button', {
+        onClick: onClose,
+        style: { 
+          display: 'block', 
+          margin: '24px auto 0', 
+          background: 'transparent', 
+          border: '2px solid #f5f5dc', 
+          color: '#f5f5dc', 
+          padding: '12px 32px', 
+          borderRadius: '8px', 
+          cursor: 'pointer',
+          fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive",
+          fontSize: '18px'
+        }
+      }, lang === 'it' ? 'Vedi il Menu' : lang === 'es' ? 'Ver el Menú' : lang === 'fr' ? 'Voir le Menu' : lang === 'de' ? 'Menü ansehen' : 'View Menu')
+    )
+  );
+}
+
+function PinModal({ pin, setPin, onSubmit, onClose }) {
+  return e('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' },
+    onClick: onClose
+  },
+    e('div', {
+      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '320px', width: '100%', textAlign: 'center' },
+      onClick: ev => ev.stopPropagation()
+    },
+      e('h3', { style: { margin: '0 0 8px', color: '#2d3748' }}, '🔐 Admin Access'),
+      e('p', { style: { margin: '0 0 20px', color: '#718096', fontSize: '14px' }}, 'Inserisci il PIN per accedere'),
+      e('input', {
+        type: 'password',
+        value: pin,
+        onChange: ev => setPin(ev.target.value),
+        onKeyPress: ev => ev.key === 'Enter' && onSubmit(),
+        placeholder: '****',
+        style: { width: '100%', padding: '12px', fontSize: '24px', textAlign: 'center', border: '2px solid #e2e8f0', borderRadius: '8px', letterSpacing: '8px', boxSizing: 'border-box' }
+      }),
+      e('div', { style: { display: 'flex', gap: '12px', marginTop: '20px' }},
+        e('button', { onClick: onClose, style: { flex: 1, padding: '12px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Annulla'),
+        e('button', { onClick: onSubmit, style: { flex: 1, padding: '12px', border: 'none', background: '#ca4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Accedi')
+      )
+    )
+  );
+}
+
+function EditModal({ item, lang, onSave, onClose }) {
+  const [formData, setFormData] = useState({ ...item });
+  
+  const toggleAllergen = (a) => {
+    const current = formData.allergens || [];
+    setFormData({ ...formData, allergens: current.includes(a) ? current.filter(x => x !== a) : [...current, a] });
+  };
+  
+  return e('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflow: 'auto', padding: '20px' },
+    onClick: onClose
+  },
+    e('div', {
+      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      onClick: ev => ev.stopPropagation()
+    },
+      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '✏️ Modifica Piatto'),
+      LANGUAGES.map(l => 
+        e('div', { key: l.code, style: { marginBottom: '16px' }},
+          e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, l.flag, ' Nome (', l.name, ')'),
+          e('input', {
+            type: 'text',
+            value: formData.name[l.code] || '',
+            onChange: ev => setFormData({ ...formData, name: { ...formData.name, [l.code]: ev.target.value }}),
+            style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+          })
+        )
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, 'Prezzo (€)'),
+        e('input', {
+          type: 'number',
+          step: '0.5',
+          value: formData.price,
+          onChange: ev => setFormData({ ...formData, price: parseFloat(ev.target.value) || 0 }),
+          style: { width: '120px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }
+        })
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '8px' }}, 'Allergeni'),
+        e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' }},
+          Object.entries(ALLERGENS).map(([key, val]) => 
+            e('button', {
+              key,
+              type: 'button',
+              onClick: () => toggleAllergen(key),
+              style: { padding: '6px 12px', border: '1px solid', borderColor: (formData.allergens || []).includes(key) ? '#ca4d4f' : '#e2e8f0', background: (formData.allergens || []).includes(key) ? '#ebf8ff' : '#fff', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }
+            }, e(AllergenIcon, { type: key, lang }), ' ', val.name[lang])
+          )
+        )
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '🖼️ URL Immagine (per lingue straniere)'),
+        e('input', {
+          type: 'url',
+          value: formData.image || '',
+          onChange: ev => setFormData({ ...formData, image: ev.target.value }),
+          placeholder: 'https://...',
+          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+        })
+      ),
+      e('div', { style: { display: 'flex', gap: '12px', marginTop: '24px' }},
+        e('button', { onClick: onClose, style: { flex: 1, padding: '12px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Annulla'),
+        e('button', { onClick: () => onSave(formData), style: { flex: 1, padding: '12px', border: 'none', background: '#ca4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Salva')
+      )
+    )
+  );
+}
+
+function AddModal({ lang, onSave, onClose }) {
+  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '' }, price: 0, allergens: [], image: '' });
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translated, setTranslated] = useState(false);
+
+  const toggleAllergen = (a) => {
+    const current = formData.allergens || [];
+    setFormData({ ...formData, allergens: current.includes(a) ? current.filter(x => x !== a) : [...current, a] });
+  };
+
+  const autoTranslate = async () => {
+    if (!formData.name.it.trim()) return alert('Inserisci prima il nome in italiano.');
+    setIsTranslating(true);
+    try {
+      const results = await Promise.all(['en','es','fr','de'].map(async tl => {
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + tl);
+        const data = await res.json();
+        return [tl, data.responseData?.translatedText || formData.name.it];
+      }));
+      const newName = { ...formData.name };
+      results.forEach(([tl, txt]) => { newName[tl] = txt; });
+      setFormData({ ...formData, name: newName });
+      setTranslated(true);
+    } catch(err) {
+      alert('Errore nella traduzione automatica. Controlla la connessione.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  return e('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflow: 'auto', padding: '20px' },
+    onClick: onClose
+  },
+    e('div', {
+      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      onClick: ev => ev.stopPropagation()
+    },
+      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '➕ Aggiungi Piatto'),
+      e('div', { style: { marginBottom: '8px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '🇮🇹 Nome (Italiano)'),
+        e('div', { style: { display: 'flex', gap: '8px' }},
+          e('input', {
+            type: 'text',
+            value: formData.name.it || '',
+            onChange: ev => { setFormData({ ...formData, name: { ...formData.name, it: ev.target.value }}); setTranslated(false); },
+            style: { flex: 1, padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+          }),
+          e('button', {
+            type: 'button',
+            onClick: autoTranslate,
+            disabled: isTranslating,
+            style: { padding: '10px 14px', background: '#ca4d4f', color: '#fff', border: 'none', borderRadius: '6px', cursor: isTranslating ? 'wait' : 'pointer', fontSize: '13px', whiteSpace: 'nowrap', opacity: isTranslating ? 0.7 : 1 }
+          }, isTranslating ? '⏳ ...' : '🌐 Traduci')
+        )
+      ),
+      translated && e('div', { style: { margin: '0 0 12px', padding: '10px 14px', background: '#fffbea', border: '1px solid #f6e05e', borderRadius: '6px', fontSize: '13px', color: '#744210' }},
+        '✅ Traduzioni generate automaticamente — controlla e correggi se necessario prima di salvare.'
+      ),
+      LANGUAGES.filter(l => l.code !== 'it').map(l =>
+        e('div', { key: l.code, style: { marginBottom: '16px' }},
+          e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, l.flag, ' Nome (', l.name, ')'),
+          e('input', {
+            type: 'text',
+            value: formData.name[l.code] || '',
+            onChange: ev => setFormData({ ...formData, name: { ...formData.name, [l.code]: ev.target.value }}),
+            style: { width: '100%', padding: '10px', border: translated ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', background: translated ? '#ebf8ff' : '#fff' }
+          })
+        )
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, 'Prezzo (€)'),
+        e('input', {
+          type: 'number',
+          step: '0.5',
+          value: formData.price,
+          onChange: ev => setFormData({ ...formData, price: parseFloat(ev.target.value) || 0 }),
+          style: { width: '120px', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }
+        })
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '8px' }}, 'Allergeni'),
+        e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' }},
+          Object.entries(ALLERGENS).map(([key, val]) =>
+            e('button', {
+              key,
+              type: 'button',
+              onClick: () => toggleAllergen(key),
+              style: { padding: '6px 12px', border: '1px solid', borderColor: (formData.allergens || []).includes(key) ? '#ca4d4f' : '#e2e8f0', background: (formData.allergens || []).includes(key) ? '#ebf8ff' : '#fff', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }
+            }, e(AllergenIcon, { type: key, lang }), ' ', val.name[lang])
+          )
+        )
+      ),
+      e('div', { style: { display: 'flex', gap: '12px', marginTop: '24px' }},
+        e('button', { onClick: onClose, style: { flex: 1, padding: '12px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Annulla'),
+        e('button', { onClick: () => onSave(formData), style: { flex: 1, padding: '12px', border: 'none', background: '#38a169', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Aggiungi')
+      )
+    )
+  );
+}
+
+function EditSpecialsModal({ specials, lang, onSave, onClose }) {
+  const [items, setItems] = useState([...specials]);
+  const [translatingIdx, setTranslatingIdx] = useState(null);
+  const [translatedItems, setTranslatedItems] = useState([]);
+
+  const updateItem = (idx, field, value, subfield) => {
+    const newItems = [...items];
+    if (subfield) {
+      newItems[idx][field][subfield] = value;
+    } else {
+      newItems[idx][field] = value;
+    }
+    setItems(newItems);
+    if (subfield === 'it') setTranslatedItems(prev => prev.filter(i => i !== idx));
+  };
+
+  const translateSpecial = async (idx) => {
+    if (!items[idx].name.it.trim()) return alert('Inserisci prima il nome in italiano.');
+    setTranslatingIdx(idx);
+    try {
+      const langs = ['en','es','fr','de'];
+      const nameResults = await Promise.all(langs.map(async tl => {
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + tl);
+        const data = await res.json();
+        return [tl, data.responseData?.translatedText || items[idx].name.it];
+      }));
+      let descResults = [];
+      if (items[idx].description.it.trim()) {
+        descResults = await Promise.all(langs.map(async tl => {
+          const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + tl);
+          const data = await res.json();
+          return [tl, data.responseData?.translatedText || items[idx].description.it];
+        }));
+      }
+      const newItems = [...items];
+      nameResults.forEach(([tl, txt]) => { newItems[idx].name[tl] = txt; });
+      descResults.forEach(([tl, txt]) => { newItems[idx].description[tl] = txt; });
+      setItems(newItems);
+      setTranslatedItems(prev => [...new Set([...prev, idx])]);
+    } catch(err) {
+      alert('Errore nella traduzione automatica.');
+    } finally {
+      setTranslatingIdx(null);
+    }
+  };
+
+  const addSpecial = () => {
+    setItems([...items, { id: Date.now(), name: { it: '', en: '', es: '', fr: '', de: '' }, price: 0, description: { it: '', en: '', es: '', fr: '', de: '' }}]);
+  };
+
+  const removeSpecial = (idx) => {
+    setItems(items.filter((_, i) => i !== idx));
+    setTranslatedItems(prev => prev.filter(i => i !== idx).map(i => i > idx ? i - 1 : i));
+  };
+
+  const otherLangs = LANGUAGES.filter(l => l.code !== 'it');
+
+  return e('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflow: 'auto', padding: '20px' },
+    onClick: onClose
+  },
+    e('div', {
+      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '700px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      onClick: ev => ev.stopPropagation()
+    },
+      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '📋 Modifica Speciali del Giorno'),
+      items.map((item, idx) =>
+        e('div', { key: item.id, style: { marginBottom: '24px', padding: '16px', background: '#f7fafc', borderRadius: '12px' }},
+          e('div', { style: { display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }},
+            e('strong', null, 'Speciale #', idx + 1),
+            e('button', { onClick: () => removeSpecial(idx), style: { background: '#e53e3e', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px' }}, '🗑️ Rimuovi')
+          ),
+          e('div', { style: { marginBottom: '6px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, '🇮🇹 Nome (Italiano)'),
+            e('div', { style: { display: 'flex', gap: '8px' }},
+              e('input', {
+                type: 'text',
+                placeholder: '🇮🇹 Nome',
+                value: item.name.it || '',
+                onChange: ev => updateItem(idx, 'name', ev.target.value, 'it'),
+                style: { flex: 1, padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', boxSizing: 'border-box' }
+              }),
+              e('button', {
+                type: 'button',
+                onClick: () => translateSpecial(idx),
+                disabled: translatingIdx === idx,
+                style: { padding: '8px 12px', background: '#ca4d4f', color: '#fff', border: 'none', borderRadius: '4px', cursor: translatingIdx === idx ? 'wait' : 'pointer', fontSize: '12px', whiteSpace: 'nowrap', opacity: translatingIdx === idx ? 0.7 : 1 }
+              }, translatingIdx === idx ? '⏳ ...' : '🌐 Traduci')
+            )
+          ),
+          e('div', { style: { marginBottom: '8px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, '🇮🇹 Descrizione (Italiano)'),
+            e('input', {
+              type: 'text',
+              placeholder: '🇮🇹 Descrizione',
+              value: item.description.it || '',
+              onChange: ev => updateItem(idx, 'description', ev.target.value, 'it'),
+              style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', boxSizing: 'border-box' }
+            })
+          ),
+          translatedItems.includes(idx) && e('div', { style: { margin: '2px 0 8px', padding: '7px 12px', background: '#fffbea', border: '1px solid #f6e05e', borderRadius: '4px', fontSize: '12px', color: '#744210' }},
+            '✅ Traduzioni generate — controlla e correggi se necessario.'
+          ),
+          otherLangs.map(l =>
+            e('div', { key: l.code, style: { marginBottom: '8px' }},
+              e('input', {
+                type: 'text',
+                placeholder: l.flag + ' Nome',
+                value: item.name[l.code] || '',
+                onChange: ev => updateItem(idx, 'name', ev.target.value, l.code),
+                style: { width: '100%', padding: '8px', border: translatedItems.includes(idx) ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '4px', marginBottom: '4px', boxSizing: 'border-box', background: translatedItems.includes(idx) ? '#ebf8ff' : '#fff' }
+              }),
+              e('input', {
+                type: 'text',
+                placeholder: l.flag + ' Descrizione',
+                value: item.description[l.code] || '',
+                onChange: ev => updateItem(idx, 'description', ev.target.value, l.code),
+                style: { width: '100%', padding: '8px', border: translatedItems.includes(idx) ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '4px', boxSizing: 'border-box', background: translatedItems.includes(idx) ? '#ebf8ff' : '#fff' }
+              })
+            )
+          ),
+          e('input', {
+            type: 'number',
+            step: '0.5',
+            placeholder: 'Prezzo',
+            value: item.price,
+            onChange: ev => updateItem(idx, 'price', parseFloat(ev.target.value) || 0),
+            style: { width: '100px', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '4px', marginTop: '8px' }
+          })
+        )
+      ),
+      e('button', { onClick: addSpecial, style: { width: '100%', padding: '12px', border: '2px dashed #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer', marginBottom: '20px', color: '#718096' }}, '+ Aggiungi Speciale'),
+      e('div', { style: { display: 'flex', gap: '12px' }},
+        e('button', { onClick: onClose, style: { flex: 1, padding: '12px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Annulla'),
+        e('button', { onClick: () => onSave(items), style: { flex: 1, padding: '12px', border: 'none', background: '#ca4d4f', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Salva Speciali')
+      )
+    )
+  );
+}
+
+ReactDOM.render(e(App), document.getElementById('root'));
+  </script>
+</body>
+</html>
