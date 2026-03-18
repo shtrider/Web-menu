@@ -11,7 +11,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Georgia', serif; background: linear-gradient(135deg, #fff8f5 0%, #fff 100%); min-height: 100vh; }
@@ -106,18 +106,18 @@ const sanitizeText = (text, maxLen = 300) => {
 };
 
 const ALLERGENS = {
-  gluten: { name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten' }},
-  dairy: { name: { it: 'Latticini', en: 'Dairy', es: 'Lácteos', fr: 'Produits laitiers', de: 'Milch' }},
-  nuts: { name: { it: 'Frutta a guscio', en: 'Nuts', es: 'Frutos secos', fr: 'Noix', de: 'Nüsse' }},
-  fish: { name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch' }},
-  shellfish: { name: { it: 'Crostacei', en: 'Shellfish', es: 'Mariscos', fr: 'Crustacés', de: 'Schalentiere' }},
-  eggs: { name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier' }},
-  soy: { name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja' }},
-  celery: { name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie' }},
-  mustard: { name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf' }},
-  sesame: { name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam' }},
-  sulfites: { name: { it: 'Solfiti', en: 'Sulfites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite' }},
-  pork: { name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein' }}
+  gluten: { name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten', zh: '麸质', ja: 'グルテン' }},
+  dairy: { name: { it: 'Latticini', en: 'Dairy', es: 'Lácteos', fr: 'Produits laitiers', de: 'Milch', zh: '乳制品', ja: '乳製品' }},
+  nuts: { name: { it: 'Frutta a guscio', en: 'Nuts', es: 'Frutos secos', fr: 'Noix', de: 'Nüsse', zh: '坚果', ja: 'ナッツ' }},
+  fish: { name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch', zh: '鱼', ja: '魚' }},
+  shellfish: { name: { it: 'Crostacei', en: 'Shellfish', es: 'Mariscos', fr: 'Crustacés', de: 'Schalentiere', zh: '贝类', ja: '甲殻類' }},
+  eggs: { name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier', zh: '鸡蛋', ja: '卵' }},
+  soy: { name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja', zh: '大豆', ja: '大豆' }},
+  celery: { name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie', zh: '芹菜', ja: 'セロリ' }},
+  mustard: { name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf', zh: '芥末', ja: 'マスタード' }},
+  sesame: { name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam', zh: '芝麻', ja: 'ゴマ' }},
+  sulfites: { name: { it: 'Solfiti', en: 'Sulfites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite', zh: '亚硫酸盐', ja: '亜硫酸塩' }},
+  pork: { name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein', zh: '猪肉', ja: '豚肉' }}
 };
 
 const AllergenIcon = ({ type, lang }) => {
@@ -164,79 +164,81 @@ const LANGUAGES = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' }
 ];
 
 const CATEGORY_NAMES = {
-  appetizers: { it: 'Antipasti', en: 'Appetizers', es: 'Entrantes', fr: 'Entrées', de: 'Vorspeisen' },
-  primi: { it: 'Primi Piatti', en: 'First Courses', es: 'Primeros Platos', fr: 'Premiers Plats', de: 'Erste Gänge' },
-  secondi: { it: 'Secondi', en: 'Main Courses', es: 'Segundos', fr: 'Plats Principaux', de: 'Hauptgerichte' },
-  contorni: { it: 'Contorni', en: 'Side Dishes', es: 'Guarniciones', fr: 'Accompagnements', de: 'Beilagen' },
-  dessert: { it: 'Dolci', en: 'Desserts', es: 'Postres', fr: 'Desserts', de: 'Nachspeisen' },
-  softdrinks: { it: 'Bevande', en: 'Soft Drinks', es: 'Refrescos', fr: 'Boissons', de: 'Softdrinks' },
-  wine: { it: 'Vini', en: 'Wines', es: 'Vinos', fr: 'Vins', de: 'Weine' },
-  beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere' },
-  cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails' },
-  spirits: { it: 'Liquori', en: 'Spirits', es: 'Licores', fr: 'Spiritueux', de: 'Spirituosen' }
+  appetizers: { it: 'Antipasti', en: 'Appetizers', es: 'Entrantes', fr: 'Entrées', de: 'Vorspeisen', zh: '开胃菜', ja: '前菜' },
+  primi: { it: 'Primi Piatti', en: 'First Courses', es: 'Primeros Platos', fr: 'Premiers Plats', de: 'Erste Gänge', zh: '第一道', ja: 'プリモ' },
+  secondi: { it: 'Secondi', en: 'Main Courses', es: 'Segundos', fr: 'Plats Principaux', de: 'Hauptgerichte', zh: '第二道', ja: 'セコンド' },
+  contorni: { it: 'Contorni', en: 'Side Dishes', es: 'Guarniciones', fr: 'Accompagnements', de: 'Beilagen', zh: '配菜', ja: '付け合わせ' },
+  dessert: { it: 'Dolci', en: 'Desserts', es: 'Postres', fr: 'Desserts', de: 'Nachspeisen', zh: '甜点', ja: 'デザート' },
+  softdrinks: { it: 'Bevande', en: 'Soft Drinks', es: 'Refrescos', fr: 'Boissons', de: 'Softdrinks', zh: '软饮料', ja: 'ソフトドリンク' },
+  wine: { it: 'Vini', en: 'Wines', es: 'Vinos', fr: 'Vins', de: 'Weine', zh: '葡萄酒', ja: 'ワイン' },
+  beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere', zh: '啤酒', ja: 'ビール' },
+  cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails', zh: '鸡尾酒', ja: 'カクテル' },
+  spirits: { it: 'Liquori', en: 'Spirits', es: 'Licores', fr: 'Spiritueux', de: 'Spirituosen', zh: '烈酒', ja: 'スピリッツ' }
 };
 
 const defaultMenu = {
   appetizers: [
-    { id: 1, name: { it: 'Battuta di Black Angus con crema di peperoni arrosto e nocciole tostate', en: 'Black Angus tartare with roasted pepper cream and toasted hazelnuts', es: 'Tartar de Black Angus con crema de pimientos asados y avellanas tostadas', fr: 'Tartare de Black Angus avec crème de poivrons rôtis et noisettes grillées', de: 'Black Angus Tartar mit gerösteter Paprikacreme und gerösteten Haselnüssen' }, price: 16, allergens: ['nuts'], image: '' },
-    { id: 2, name: { it: 'Bruschettine con lardo di Colonnata, castagne e miele', en: 'Bruschettas with Colonnata lard, chestnuts and honey', es: 'Bruschetas con lardo de Colonnata, castañas y miel', fr: 'Bruschettas au lard de Colonnata, châtaignes et miel', de: 'Bruschetta mit Colonnata Speck, Kastanien und Honig' }, price: 7, allergens: ['gluten', 'pork'], image: '' },
-    { id: 3, name: { it: 'Flan di cavolfiore con fonduta al Parmigiano Reggiano con chips di porro', en: 'Cauliflower flan with Parmigiano Reggiano fondue and leek chips', es: 'Flan de coliflor con fonduta de Parmigiano Reggiano y chips de puerro', fr: 'Flan de chou-fleur avec fondue au Parmigiano Reggiano et chips de poireau', de: 'Blumenkohlpudding mit Parmigiano Reggiano Fondue und Lauch-Chips' }, price: 7, allergens: ['dairy', 'eggs'], image: '' },
-    { id: 4, name: { it: 'Selezione di salumi e formaggi artigianali con miele di castagno', en: 'Selection of local cold cuts and cheeses with chestnut honey', es: 'Selección de embutidos y quesos artesanales con miel de castaña', fr: 'Sélection de charcuteries et fromages artisanaux avec miel de châtaignier', de: 'Auswahl an hausgemachten Wurstwaren und Käse mit Kastanienhonig' }, price: 12, allergens: ['dairy', 'pork'], image: '' },
-    { id: 5, name: { it: 'Focaccia olio EVO e rosmarino', en: 'Focaccia with EVO oil and rosemary', es: 'Focaccia con aceite de oliva y romero', fr: 'Focaccia à l\'huile d\'olive et romarin', de: 'Focaccia mit Olivenöl und Rosmarin' }, price: 5, allergens: ['gluten'], image: '' }
+    { id: 1, name: { it: 'Battuta di Black Angus con crema di peperoni arrosto e nocciole tostate', en: 'Black Angus tartare with roasted pepper cream and toasted hazelnuts', es: 'Tartar de Black Angus con crema de pimientos asados y avellanas tostadas', fr: 'Tartare de Black Angus avec crème de poivrons rôtis et noisettes grillées', de: 'Black Angus Tartar mit gerösteter Paprikacreme und gerösteten Haselnüssen', zh: '黑安格斯牛肉鞑靼配烤甜椒奶油和烤榛子', ja: 'ブラックアンガスのタルタル ローストペッパークリームとトーストヘーゼルナッツ添え' }, price: 16, allergens: ['nuts'], image: '' },
+    { id: 2, name: { it: 'Bruschettine con lardo di Colonnata, castagne e miele', en: 'Bruschettas with Colonnata lard, chestnuts and honey', es: 'Bruschetas con lardo de Colonnata, castañas y miel', fr: 'Bruschettas au lard de Colonnata, châtaignes et miel', de: 'Bruschetta mit Colonnata Speck, Kastanien und Honig', zh: '科隆纳塔猪脂面包片配栗子和蜂蜜', ja: 'コロンナータのラルドのブルスケッタ 栗とハチミツ添え' }, price: 7, allergens: ['gluten', 'pork'], image: '' },
+    { id: 3, name: { it: 'Flan di cavolfiore con fonduta al Parmigiano Reggiano con chips di porro', en: 'Cauliflower flan with Parmigiano Reggiano fondue and leek chips', es: 'Flan de coliflor con fonduta de Parmigiano Reggiano y chips de puerro', fr: 'Flan de chou-fleur avec fondue au Parmigiano Reggiano et chips de poireau', de: 'Blumenkohlpudding mit Parmigiano Reggiano Fondue und Lauch-Chips', zh: '花椰菜布丁配帕尔马干酪火锅和韭葱脆片', ja: 'カリフラワーフラン パルミジャーノ・レッジャーノフォンデュとネギチップス添え' }, price: 7, allergens: ['dairy', 'eggs'], image: '' },
+    { id: 4, name: { it: 'Selezione di salumi e formaggi artigianali con miele di castagno', en: 'Selection of local cold cuts and cheeses with chestnut honey', es: 'Selección de embutidos y quesos artesanales con miel de castaña', fr: 'Sélection de charcuteries et fromages artisanaux avec miel de châtaignier', de: 'Auswahl an hausgemachten Wurstwaren und Käse mit Kastanienhonig', zh: '精选手工腌肉和奶酪配栗子蜂蜜', ja: '自家製サラミとチーズの盛り合わせ 栗のハチミツ添え' }, price: 12, allergens: ['dairy', 'pork'], image: '' },
+    { id: 5, name: { it: 'Focaccia olio EVO e rosmarino', en: 'Focaccia with EVO oil and rosemary', es: 'Focaccia con aceite de oliva y romero', fr: 'Focaccia à l\'huile d\'olive et romarin', de: 'Focaccia mit Olivenöl und Rosmarin', zh: '佛卡恰特级初榨橄榄油和迷迭香', ja: 'フォカッチャ エキストラバージンオリーブオイルとローズマリー' }, price: 5, allergens: ['gluten'], image: '' }
   ],
   primi: [
-    { id: 6, name: { it: 'Spaghetti al ragù bolognese', en: 'Spaghetti in Bolognese sauce', es: 'Espaguetis a la boloñesa', fr: 'Spaghetti à la bolognaise', de: 'Spaghetti Bolognese' }, price: 14, allergens: ['gluten', 'celery'], image: '' },
-    { id: 7, name: { it: 'Gnocchi di zucca con taleggio e noci', en: 'Pumpkin gnocchi with taleggio cheese and walnuts', es: 'Ñoquis de calabaza con taleggio y nueces', fr: 'Gnocchi de potiron au taleggio et noix', de: 'Kürbis-Gnocchi mit Taleggio und Walnüssen' }, price: 14, allergens: ['gluten', 'dairy', 'nuts', 'eggs'], image: '' },
-    { id: 8, name: { it: 'Primo della tradizione romana del giorno', en: 'Traditional Roman pasta dish of the day', es: 'Primer plato de la tradición romana del día', fr: 'Plat de pâtes traditionnel romain du jour', de: 'Traditionelles römisches Pasta-Gericht des Tages' }, price: 12, allergens: ['gluten'], image: '' },
-    { id: 9, name: { it: 'Zuppa del giorno', en: 'Soup of the day', es: 'Sopa del día', fr: 'Soupe du jour', de: 'Tagessuppe' }, price: 12, allergens: [], image: '' }
+    { id: 6, name: { it: 'Spaghetti al ragù bolognese', en: 'Spaghetti in Bolognese sauce', es: 'Espaguetis a la boloñesa', fr: 'Spaghetti à la bolognaise', de: 'Spaghetti Bolognese', zh: '肉酱意大利面', ja: 'ボロネーゼソースのスパゲッティ' }, price: 14, allergens: ['gluten', 'celery'], image: '' },
+    { id: 7, name: { it: 'Gnocchi di zucca con taleggio e noci', en: 'Pumpkin gnocchi with taleggio cheese and walnuts', es: 'Ñoquis de calabaza con taleggio y nueces', fr: 'Gnocchi de potiron au taleggio et noix', de: 'Kürbis-Gnocchi mit Taleggio und Walnüssen', zh: '南瓜汤团配塔莱焦和核桃', ja: 'タレッジョとクルミのパンプキンニョッキ' }, price: 14, allergens: ['gluten', 'dairy', 'nuts', 'eggs'], image: '' },
+    { id: 8, name: { it: 'Primo della tradizione romana del giorno', en: 'Traditional Roman pasta dish of the day', es: 'Primer plato de la tradición romana del día', fr: 'Plat de pâtes traditionnel romain du jour', de: 'Traditionelles römisches Pasta-Gericht des Tages', zh: '每日罗马传统意面', ja: '本日のローマ伝統パスタ' }, price: 12, allergens: ['gluten'], image: '' },
+    { id: 9, name: { it: 'Zuppa del giorno', en: 'Soup of the day', es: 'Sopa del día', fr: 'Soupe du jour', de: 'Tagessuppe', zh: '每日例汤', ja: '本日のスープ' }, price: 12, allergens: [], image: '' }
   ],
   secondi: [
-    { id: 10, name: { it: 'Bistecca di manzo danese 250gr con patate brasate e pesto rosso', en: 'Danish beef steak (250g) with braised potatoes and red pesto', es: 'Bistec de ternera danés 250g con patatas estofadas y pesto rojo', fr: 'Steak de bœuf danois 250g avec pommes de terre braisées et pesto rouge', de: 'Dänisches Rindersteak 250g mit geschmorten Kartoffeln und rotem Pesto' }, price: 25, allergens: ['nuts'], image: '' },
-    { id: 11, name: { it: 'Tagliata di pollo speziato con funghi arrosto', en: 'Spiced half-chicken with roasted mushrooms', es: 'Pollo especiado en rodajas con setas asadas', fr: 'Poulet épicé tranché avec champignons rôtis', de: 'Gewürztes Hähnchen in Scheiben mit gerösteten Pilzen' }, price: 20, allergens: [], image: '' },
-    { id: 12, name: { it: 'Baccalà alla romana', en: 'Roman-style (stewed) cod fish served with roasted potatoes', es: 'Bacalao a la romana con patatas asadas', fr: 'Morue à la romaine avec pommes de terre rôties', de: 'Kabeljau auf römische Art mit Bratkartoffeln' }, price: 20, allergens: ['fish', 'gluten'], image: '' },
-    { id: 13, name: { it: 'Burger di scottona con verza viola, provola affumicata, bacon croccante e maionese alla n\'duja', en: 'Scottona beef burger with purple cabbage, smoked provola, crispy bacon and mayonnaise with \'nduja', es: 'Hamburguesa de scottona con col lombarda, provola ahumada, bacon crujiente y mayonesa de \'nduja', fr: 'Burger de scottona avec chou rouge, provola fumée, bacon croustillant et mayonnaise à la \'nduja', de: 'Scottona Burger mit Rotkohl, geräuchertem Provola, knusprigem Speck und \'Nduja-Mayonnaise' }, price: 16, allergens: ['gluten', 'dairy', 'eggs', 'pork'], image: '' }
+    { id: 10, name: { it: 'Bistecca di manzo danese 250gr con patate brasate e pesto rosso', en: 'Danish beef steak (250g) with braised potatoes and red pesto', es: 'Bistec de ternera danés 250g con patatas estofadas y pesto rojo', fr: 'Steak de bœuf danois 250g avec pommes de terre braisées et pesto rouge', de: 'Dänisches Rindersteak 250g mit geschmorten Kartoffeln und rotem Pesto', zh: '丹麦牛排250克配炖土豆和红香蒜酱', ja: 'デンマーク産ビーフステーキ250g 煮込みポテトとレッドペスト添え' }, price: 25, allergens: ['nuts'], image: '' },
+    { id: 11, name: { it: 'Tagliata di pollo speziato con funghi arrosto', en: 'Spiced half-chicken with roasted mushrooms', es: 'Pollo especiado en rodajas con setas asadas', fr: 'Poulet épicé tranché avec champignons rôtis', de: 'Gewürztes Hähnchen in Scheiben mit gerösteten Pilzen', zh: '香辣鸡片配烤蘑菇', ja: 'スパイスの効いたチキンスライスとローストマッシュルーム添え' }, price: 20, allergens: [], image: '' },
+    { id: 12, name: { it: 'Baccalà alla romana', en: 'Roman-style (stewed) cod fish served with roasted potatoes', es: 'Bacalao a la romana con patatas asadas', fr: 'Morue à la romaine avec pommes de terre rôties', de: 'Kabeljau auf römische Art mit Bratkartoffeln', zh: '罗马风格鳕鱼配烤土豆', ja: 'ローマ風タラ ローストポテト添え' }, price: 20, allergens: ['fish', 'gluten'], image: '' },
+    { id: 13, name: { it: 'Burger di scottona con verza viola, provola affumicata, bacon croccante e maionese alla n\'duja', en: 'Scottona beef burger with purple cabbage, smoked provola, crispy bacon and mayonnaise with \'nduja', es: 'Hamburguesa de scottona con col lombarda, provola ahumada, bacon crujiente y mayonesa de \'nduja', fr: 'Burger de scottona avec chou rouge, provola fumée, bacon croustillant et mayonnaise à la \'nduja', de: 'Scottona Burger mit Rotkohl, geräuchertem Provola, knusprigem Speck und \'Nduja-Mayonnaise', zh: 'Scottona汉堡配紫色卷心菜、烟熏普罗沃拉、酥脆培根和nduja蛋黄酱', ja: 'スコットーナバーガー 紫キャベツ、スモークプロヴォラ、カリカリベーコン、ンドゥイヤマヨネーズ添え' }, price: 16, allergens: ['gluten', 'dairy', 'eggs', 'pork'], image: '' }
   ],
   contorni: [
-    { id: 14, name: { it: 'Patate al forno', en: 'Roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Bratkartoffeln' }, price: 6, allergens: [], image: '' },
-    { id: 15, name: { it: 'Broccoletti ripassati', en: 'Sautéed broccoli raab', es: 'Brócoli salteado', fr: 'Brocoli sauté', de: 'Gebratener Brokkoli' }, price: 6, allergens: [], image: '' },
-    { id: 16, name: { it: 'Insalata mista', en: 'Mixed garden salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat' }, price: 6, allergens: [], image: '' },
-    { id: 17, name: { it: 'Verdura del giorno', en: 'Vegetable of the day', es: 'Verdura del día', fr: 'Légume du jour', de: 'Tagesgemüse' }, price: 6, allergens: [], image: '' }
+    { id: 14, name: { it: 'Patate al forno', en: 'Roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Bratkartoffeln', zh: '烤土豆', ja: 'ローストポテト' }, price: 6, allergens: [], image: '' },
+    { id: 15, name: { it: 'Broccoletti ripassati', en: 'Sautéed broccoli raab', es: 'Brócoli salteado', fr: 'Brocoli sauté', de: 'Gebratener Brokkoli', zh: '炒西兰花', ja: 'ブロッコリーのソテー' }, price: 6, allergens: [], image: '' },
+    { id: 16, name: { it: 'Insalata mista', en: 'Mixed garden salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: [], image: '' },
+    { id: 17, name: { it: 'Verdura del giorno', en: 'Vegetable of the day', es: 'Verdura del día', fr: 'Légume du jour', de: 'Tagesgemüse', zh: '当日蔬菜', ja: '本日の野菜' }, price: 6, allergens: [], image: '' }
   ],
   dessert: [
-    { id: 18, name: { it: 'Tiramisù', en: 'Classic tiramisu', es: 'Tiramisú clásico', fr: 'Tiramisu classique', de: 'Klassisches Tiramisu' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
-    { id: 19, name: { it: 'Crumble pere e cioccolato', en: 'Pear and chocolate crumble', es: 'Crumble de pera y chocolate', fr: 'Crumble poire et chocolat', de: 'Birnen-Schokoladen-Crumble' }, price: 6, allergens: ['gluten', 'dairy', 'nuts'], image: '' },
-    { id: 20, name: { it: 'Dolce del giorno', en: 'Dessert of the day', es: 'Postre del día', fr: 'Dessert du jour', de: 'Dessert des Tages' }, price: 6, allergens: [], image: '' }
+    { id: 18, name: { it: 'Tiramisù', en: 'Classic tiramisu', es: 'Tiramisú clásico', fr: 'Tiramisu classique', de: 'Klassisches Tiramisu', zh: '提拉米苏', ja: 'ティラミス' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
+    { id: 19, name: { it: 'Crumble pere e cioccolato', en: 'Pear and chocolate crumble', es: 'Crumble de pera y chocolate', fr: 'Crumble poire et chocolat', de: 'Birnen-Schokoladen-Crumble', zh: '梨和巧克力碎', ja: '洋ナシとチョコレートのクランブル' }, price: 6, allergens: ['gluten', 'dairy', 'nuts'], image: '' },
+    { id: 20, name: { it: 'Dolce del giorno', en: 'Dessert of the day', es: 'Postre del día', fr: 'Dessert du jour', de: 'Dessert des Tages', zh: '本日甜点', ja: '本日のデザート' }, price: 6, allergens: [], image: '' }
   ],
   softdrinks: [
-    { id: 21, name: { it: 'Acqua minerale', en: 'Mineral water', es: 'Agua mineral', fr: 'Eau minérale', de: 'Mineralwasser' }, price: 2, allergens: [], image: '' },
-    { id: 22, name: { it: 'Coca-Cola / Coca-Cola Zero / Sprite', en: 'Coke / Coke Zero / Sprite', es: 'Coca-Cola / Coca-Cola Zero / Sprite', fr: 'Coca-Cola / Coca-Cola Zero / Sprite', de: 'Cola / Cola Zero / Sprite' }, price: 3, allergens: [], image: '' }
+    { id: 21, name: { it: 'Acqua minerale', en: 'Mineral water', es: 'Agua mineral', fr: 'Eau minérale', de: 'Mineralwasser', zh: '矿泉水', ja: 'ミネラルウォーター' }, price: 2, allergens: [], image: '' },
+    { id: 22, name: { it: 'Coca-Cola / Coca-Cola Zero / Sprite', en: 'Coke / Coke Zero / Sprite', es: 'Coca-Cola / Coca-Cola Zero / Sprite', fr: 'Coca-Cola / Coca-Cola Zero / Sprite', de: 'Cola / Cola Zero / Sprite', zh: '可口可乐/可口可乐零/雪碧', ja: 'コカ・コーラ/コカ・コーラゼロ/スプライト' }, price: 3, allergens: [], image: '' }
   ],
   wine: [
-    { id: 23, name: { it: 'Vino rosso / bianco / spumante (calice)', en: 'Red / white / sparkling wine (glass)', es: 'Vino tinto / blanco / espumoso (copa)', fr: 'Vin rouge / blanc / mousseux (verre)', de: 'Rot- / Weiß- / Schaumwein (Glas)' }, price: 8, allergens: ['sulfites'], image: '' }
+    { id: 23, name: { it: 'Vino rosso / bianco / spumante (calice)', en: 'Red / white / sparkling wine (glass)', es: 'Vino tinto / blanco / espumoso (copa)', fr: 'Vin rouge / blanc / mousseux (verre)', de: 'Rot- / Weiß- / Schaumwein (Glas)', zh: '红/白/气泡酒（杯）', ja: '赤・白・スパークリングワイン（グラス）' }, price: 8, allergens: ['sulfites'], image: '' }
   ],
   beer: [
-    { id: 24, name: { it: 'Birra Peroni Capri / Raffo', en: 'Peroni Capri / Raffo beer', es: 'Cerveza Peroni Capri / Raffo', fr: 'Bière Peroni Capri / Raffo', de: 'Peroni Capri / Raffo Bier' }, price: 5, allergens: ['gluten'], image: '' },
-    { id: 25, name: { it: 'Birra alla spina Nastro Azzurro 40cl', en: 'Draught Nastro Azzurro 40cl', es: 'Cerveza de barril Nastro Azzurro 40cl', fr: 'Bière pression Nastro Azzurro 40cl', de: 'Nastro Azzurro vom Fass 40cl' }, price: 6, allergens: ['gluten'], image: '' }
+    { id: 24, name: { it: 'Birra Peroni Capri / Raffo', en: 'Peroni Capri / Raffo beer', es: 'Cerveza Peroni Capri / Raffo', fr: 'Bière Peroni Capri / Raffo', de: 'Peroni Capri / Raffo Bier', zh: 'Peroni Capri/Raffo啤酒', ja: 'ペローニ・カプリ/ラッフォビール' }, price: 5, allergens: ['gluten'], image: '' },
+    { id: 25, name: { it: 'Birra alla spina Nastro Azzurro 40cl', en: 'Draught Nastro Azzurro 40cl', es: 'Cerveza de barril Nastro Azzurro 40cl', fr: 'Bière pression Nastro Azzurro 40cl', de: 'Nastro Azzurro vom Fass 40cl', zh: '生啤酒 Nastro Azzurro 40cl', ja: '生ビール ナストロ・アズーロ 40cl' }, price: 6, allergens: ['gluten'], image: '' }
   ],
   cocktails: [
-    { id: 26, name: { it: 'Cocktail classico', en: 'Classic cocktail', es: 'Cóctel clásico', fr: 'Cocktail classique', de: 'Klassischer Cocktail' }, price: 10, allergens: ['sulfites'], image: '' },
-    { id: 27, name: { it: 'Spritz Aperol', en: 'Aperol Spritz', es: 'Spritz Aperol', fr: 'Spritz Aperol', de: 'Aperol Spritz' }, price: 8, allergens: ['sulfites'], image: '' },
-    { id: 28, name: { it: 'Negroni', en: 'Negroni', es: 'Negroni', fr: 'Negroni', de: 'Negroni' }, price: 10, allergens: ['sulfites'], image: '' }
+    { id: 26, name: { it: 'Cocktail classico', en: 'Classic cocktail', es: 'Cóctel clásico', fr: 'Cocktail classique', de: 'Klassischer Cocktail', zh: '经典鸡尾酒', ja: 'クラシックカクテル' }, price: 10, allergens: ['sulfites'], image: '' },
+    { id: 27, name: { it: 'Spritz Aperol', en: 'Aperol Spritz', es: 'Spritz Aperol', fr: 'Spritz Aperol', de: 'Aperol Spritz', zh: 'Aperol喷雾鸡尾酒', ja: 'アペロール スプリッツ' }, price: 8, allergens: ['sulfites'], image: '' },
+    { id: 28, name: { it: 'Negroni', en: 'Negroni', es: 'Negroni', fr: 'Negroni', de: 'Negroni', zh: '内格罗尼', ja: 'ネグローニ' }, price: 10, allergens: ['sulfites'], image: '' }
   ],
   spirits: [
-    { id: 29, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa' }, price: 6, allergens: ['sulfites'], image: '' },
-    { id: 30, name: { it: 'Amaro', en: 'Amaro (digestif)', es: 'Amaro (digestivo)', fr: 'Amaro (digestif)', de: 'Amaro (Digestif)' }, price: 5, allergens: [], image: '' },
-    { id: 31, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello' }, price: 5, allergens: [], image: '' }
+    { id: 29, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa', zh: '格拉巴酒', ja: 'グラッパ' }, price: 6, allergens: ['sulfites'], image: '' },
+    { id: 30, name: { it: 'Amaro', en: 'Amaro (digestif)', es: 'Amaro (digestivo)', fr: 'Amaro (digestif)', de: 'Amaro (Digestif)', zh: '苦酒（餐后酒）', ja: 'アマーロ（食後酒）' }, price: 5, allergens: [], image: '' },
+    { id: 31, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello', zh: '柠檬酒', ja: 'リモンチェッロ' }, price: 5, allergens: [], image: '' }
   ]
 };
 
 const defaultSpecials = [
-  { id: 101, name: { it: 'Carbonara tradizionale', en: 'Traditional carbonara', es: 'Carbonara tradicional', fr: 'Carbonara traditionnelle', de: 'Traditionelle Carbonara' }, price: 14, description: { it: 'Con guanciale croccante e pecorino romano DOP', en: 'With crispy guanciale and DOP pecorino romano', es: 'Con guanciale crujiente y pecorino romano DOP', fr: 'Avec guanciale croustillant et pecorino romano DOP', de: 'Mit knusprigem Guanciale und DOP Pecorino Romano' }},
-  { id: 102, name: { it: 'Filetto di branzino', en: 'Sea bass fillet', es: 'Filete de lubina', fr: 'Filet de bar', de: 'Wolfsbarschfilet' }, price: 22, description: { it: 'Con verdure di stagione e salsa agli agrumi', en: 'With seasonal vegetables and citrus sauce', es: 'Con verduras de temporada y salsa de cítricos', fr: 'Avec légumes de saison et sauce aux agrumes', de: 'Mit saisonalem Gemüse und Zitrussauce' }}
+  { id: 101, name: { it: 'Carbonara tradizionale', en: 'Traditional carbonara', es: 'Carbonara tradicional', fr: 'Carbonara traditionnelle', de: 'Traditionelle Carbonara', zh: '传统卡尔博纳拉', ja: '伝統的なカルボナーラ' }, price: 14, description: { it: 'Con guanciale croccante e pecorino romano DOP', en: 'With crispy guanciale and DOP pecorino romano', es: 'Con guanciale crujiente y pecorino romano DOP', fr: 'Avec guanciale croustillant et pecorino romano DOP', de: 'Mit knusprigem Guanciale und DOP Pecorino Romano', zh: '配酥脆猪颊肉和罗马佩科里诺DOP奶酪', ja: 'カリカリのグアンチャーレとDOPペコリーノ・ロマーノ添え' }},
+  { id: 102, name: { it: 'Filetto di branzino', en: 'Sea bass fillet', es: 'Filete de lubina', fr: 'Filet de bar', de: 'Wolfsbarschfilet', zh: '海鲈鱼片', ja: 'スズキのフィレ' }, price: 22, description: { it: 'Con verdure di stagione e salsa agli agrumi', en: 'With seasonal vegetables and citrus sauce', es: 'Con verduras de temporada y salsa de cítricos', fr: 'Avec légumes de saison et sauce aux agrumes', de: 'Mit saisonalem Gemüse und Zitrussauce', zh: '配时令蔬菜和柑橘酱', ja: '季節の野菜と柑橘系ソース添え' }}
 ];
 
 // Display bug fixed here
@@ -256,7 +258,10 @@ function App() {
   const [menu, setMenu] = useState(defaultMenu);
   const [specials, setSpecials] = useState(defaultSpecials);
   const [showSpecials, setShowSpecials] = useState(true);
-  const [lang, setLang] = useState('it');
+  const [lang, setLang] = useState(() => {
+    const bl = (navigator.language || '').split('-')[0].toLowerCase();
+    return ['it','en','es','fr','de','zh','ja'].includes(bl) ? bl : 'it';
+  });
   const [mainTab, setMainTab] = useState('kitchen');
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -414,7 +419,7 @@ function App() {
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
     e('header', { style: { background: '#ca4d4f', padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
-      e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain', background: '#fff', padding: '6px 16px', borderRadius: '10px' }}),
+      e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }}),
       e('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }},
         e('div', { style: { position: 'relative' }},
           e('button', { 
@@ -434,7 +439,7 @@ function App() {
         e('button', {
           onClick: () => setShowSpecials(true),
           style: { background: '#1a365d', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px' }
-        }, '📋 ', lang === 'it' ? 'Speciali' : lang === 'es' ? 'Especiales' : lang === 'fr' ? 'Spécialités' : lang === 'de' ? 'Tagesgerichte' : 'Specials'),
+        }, '📋 ', lang === 'it' ? 'Speciali' : lang === 'es' ? 'Especiales' : lang === 'fr' ? 'Spécialités' : lang === 'de' ? 'Tagesgerichte' : lang === 'zh' ? '今日特色' : lang === 'ja' ? '本日のスペシャル' : 'Specials'),
         isAdmin && e('button', {
           onClick: () => setShowEditSpecials(true),
           style: { background: '#2d3748', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '12px' }
@@ -451,7 +456,7 @@ function App() {
         e('button', {
           onClick: () => setMainTab('kitchen'),
           style: { padding: '16px 32px', border: 'none', background: mainTab === 'kitchen' ? '#ca4d4f' : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
-        }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : 'Kitchen'),
+        }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
         e('button', {
           onClick: () => setMainTab('bar'),
           style: { padding: '16px 32px', border: 'none', background: mainTab === 'bar' ? '#ca4d4f' : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
@@ -509,7 +514,7 @@ function App() {
       ),
       
       e('div', { style: { marginTop: '32px', padding: '16px', background: '#f7fafc', borderRadius: '12px' }},
-        e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : 'Allergen Legend'),
+        e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
         e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
           Object.entries(ALLERGENS).map(([key, val]) => 
             e('span', { key, style: { fontSize: '12px', color: '#4a5568', display: 'flex', alignItems: 'center', gap: '6px' }}, 
@@ -551,7 +556,7 @@ function SpecialsPopup({ specials, lang, onClose }) {
       e('div', { style: { position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', width: '60px', height: '16px', background: '#8b4513', borderRadius: '4px' }}),
       e('h2', { 
         style: { 
-          fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", 
+          fontFamily: "'Caveat', cursive", 
           color: '#f5f5dc', 
           textAlign: 'center', 
           fontSize: '28px', 
@@ -559,14 +564,14 @@ function SpecialsPopup({ specials, lang, onClose }) {
           textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
           letterSpacing: '2px'
         }
-      }, lang === 'it' ? '✨ Speciali del Giorno ✨' : lang === 'es' ? '✨ Especiales del Día ✨' : lang === 'fr' ? '✨ Spécialités du Jour ✨' : lang === 'de' ? '✨ Tagesgerichte ✨' : '✨ Daily Specials ✨'),
+      }, lang === 'it' ? '✨ Speciali del Giorno ✨' : lang === 'es' ? '✨ Especiales del Día ✨' : lang === 'fr' ? '✨ Spécialités du Jour ✨' : lang === 'de' ? '✨ Tagesgerichte ✨' : lang === 'zh' ? '✨ 今日特色菜 ✨' : lang === 'ja' ? '✨ 本日のスペシャル ✨' : '✨ Daily Specials ✨'),
       specials.map(item => 
         e('div', { key: item.id, style: { marginBottom: '24px', borderBottom: '1px dashed rgba(245,245,220,0.3)', paddingBottom: '16px' }},
           e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }},
-            e('h3', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: '#ffd700', fontSize: '20px', margin: 0, textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}, item.name[lang] || item.name.it),
-            e('span', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: '#98fb98', fontSize: '18px' }}, '€', item.price)
+            e('h3', { style: { fontFamily: "'Caveat', cursive", color: '#ffd700', fontSize: '20px', margin: 0, textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}, item.name[lang] || item.name.it),
+            e('span', { style: { fontFamily: "'Caveat', cursive", color: '#98fb98', fontSize: '18px' }}, '€', item.price)
           ),
-          e('p', { style: { fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive", color: 'rgba(245,245,220,0.8)', fontSize: '14px', margin: '8px 0 0', fontStyle: 'italic' }}, item.description[lang] || item.description.it)
+          e('p', { style: { fontFamily: "'Caveat', cursive", color: 'rgba(245,245,220,0.8)', fontSize: '14px', margin: '8px 0 0', fontStyle: 'italic' }}, item.description[lang] || item.description.it)
         )
       ),
       e('button', {
@@ -580,10 +585,10 @@ function SpecialsPopup({ specials, lang, onClose }) {
           padding: '12px 32px', 
           borderRadius: '8px', 
           cursor: 'pointer',
-          fontFamily: "'Indie Flower', cursive, 'Comic Sans MS', cursive",
+          fontFamily: "'Caveat', cursive",
           fontSize: '18px'
         }
-      }, lang === 'it' ? 'Vedi il Menu' : lang === 'es' ? 'Ver el Menú' : lang === 'fr' ? 'Voir le Menu' : lang === 'de' ? 'Menü ansehen' : 'View Menu')
+      }, lang === 'it' ? 'Vedi il Menu' : lang === 'es' ? 'Ver el Menú' : lang === 'fr' ? 'Voir le Menu' : lang === 'de' ? 'Menü ansehen' : lang === 'zh' ? '查看菜单' : lang === 'ja' ? 'メニューを見る' : 'View Menu')
     )
   );
 }
@@ -685,7 +690,7 @@ function EditModal({ item, lang, onSave, onClose }) {
 }
 
 function AddModal({ lang, onSave, onClose }) {
-  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '' }, price: 0, allergens: [], image: '' });
+  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '' });
   const [isTranslating, setIsTranslating] = useState(false);
   const [translated, setTranslated] = useState(false);
 
@@ -698,8 +703,9 @@ function AddModal({ lang, onSave, onClose }) {
     if (!formData.name.it.trim()) return alert('Inserisci prima il nome in italiano.');
     setIsTranslating(true);
     try {
-      const results = await Promise.all(['en','es','fr','de'].map(async tl => {
-        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + tl;
+      const results = await Promise.all(['en','es','fr','de','zh','ja'].map(async tl => {
+        const apiLang = tl === 'zh' ? 'zh-CN' : tl;
+        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + apiLang;
         const res = await fetchWithTimeout(url, {}, 8000);
         const data = await res.json();
         return [tl, sanitizeText(data.responseData?.translatedText || formData.name.it)];
@@ -805,9 +811,10 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
     if (!items[idx].name.it.trim()) return alert('Inserisci prima il nome in italiano.');
     setTranslatingIdx(idx);
     try {
-      const langs = ['en','es','fr','de'];
+      const langs = ['en','es','fr','de','zh','ja'];
       const nameResults = await Promise.all(langs.map(async tl => {
-        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + tl;
+        const apiLang = tl === 'zh' ? 'zh-CN' : tl;
+        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + apiLang;
         const res = await fetchWithTimeout(url, {}, 8000);
         const data = await res.json();
         return [tl, sanitizeText(data.responseData?.translatedText || items[idx].name.it)];
@@ -815,7 +822,8 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
       let descResults = [];
       if (items[idx].description.it.trim()) {
         descResults = await Promise.all(langs.map(async tl => {
-          const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + tl;
+          const apiLang = tl === 'zh' ? 'zh-CN' : tl;
+          const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + apiLang;
           const res = await fetchWithTimeout(url, {}, 8000);
           const data = await res.json();
           return [tl, sanitizeText(data.responseData?.translatedText || items[idx].description.it, 500)];
@@ -834,7 +842,7 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
   };
 
   const addSpecial = () => {
-    setItems([...items, { id: Date.now(), name: { it: '', en: '', es: '', fr: '', de: '' }, price: 0, description: { it: '', en: '', es: '', fr: '', de: '' }}]);
+    setItems([...items, { id: Date.now(), name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, description: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }}]);
   };
 
   const removeSpecial = (idx) => {
