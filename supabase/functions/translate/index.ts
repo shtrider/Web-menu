@@ -12,10 +12,12 @@ const GOOGLE_KEY = Deno.env.get("GOOGLE_TRANSLATE_KEY") || "";
 async function translateDeepL(text: string, targetLang: string): Promise<string> {
   const res = await fetch("https://api-free.deepl.com/v2/translate", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      auth_key: DEEPL_KEY,
-      text: text,
+    headers: {
+      "Authorization": `DeepL-Auth-Key ${DEEPL_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: [text],
       source_lang: "IT",
       target_lang: targetLang,
     }),

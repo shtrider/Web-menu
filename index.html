@@ -318,6 +318,7 @@ function App() {
   const LOCKOUT_SECONDS = 60;
 
   const [menuOverride, setMenuOverride] = useState(null);
+  const [addSubcategoryDefault, setAddSubcategoryDefault] = useState('');
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
@@ -456,6 +457,16 @@ function App() {
     setShowAddModal(false);
   };
 
+  const moveItem = (cat, index, direction) => {
+    const items = [...menu[cat]];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= items.length) return;
+    [items[index], items[newIndex]] = [items[newIndex], items[index]];
+    const newMenu = { ...menu, [cat]: items };
+    setMenu(newMenu);
+    saveToSupabase(newMenu, specials);
+  };
+
   const saveSpecials = (newSpecials) => {
     setSpecials(newSpecials);
     saveToSupabase(menu, newSpecials);
@@ -517,8 +528,8 @@ function App() {
   return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
     showSpecials && e(SpecialsPopup, { specials, lang, onClose: () => setShowSpecials(false) }),
     showPinModal && e(PinModal, { pin, setPin, onSubmit: checkPin, onClose: () => { setShowPinModal(false); setPin(''); }}),
-    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }}),
-    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => setShowAddModal(false) }),
+    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }, isBarCat: barCats.includes(subCategory) }),
+    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => { setShowAddModal(false); setAddSubcategoryDefault(''); }, isBarCat: barCats.includes(subCategory), defaultSubcategory: addSubcategoryDefault }),
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
     e('header', { style: { background: theme.header, padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
@@ -554,7 +565,7 @@ function App() {
             supabase.saveState(adminPinHash, unavailableItems, next).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
           },
           style: { background: isSunday ? '#d4842a' : '#6b46c1', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }
-        }, isSunday ? '🔄 Menu Normale' : '🔄 Menu Domenica'),
+        }, isSunday ? '🔄 Menu Borgo' : '🔄 Menu Hotel'),
         isAdmin && menuOverride !== null && e('button', {
           onClick: () => {
             setMenuOverride(null);
@@ -595,16 +606,25 @@ function App() {
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
         e('h2', { style: { margin: 0, color: theme.accent, fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
-        isAdmin && e('button', {
-          onClick: () => setShowAddModal(true),
-          style: { background: '#38a169', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
-        }, '+ ', lang === 'it' ? 'Aggiungi' : 'Add')
+        isAdmin && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' }},
+          e('button', {
+            onClick: () => setShowAddModal(true),
+            style: { background: '#38a169', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
+          }, '+ ', lang === 'it' ? 'Aggiungi' : 'Add'),
+          barCats.includes(subCategory) && e('button', {
+            onClick: () => { const name = prompt(lang === 'it' ? 'Nome sottocategoria:' : 'Subcategory name:'); if (name && name.trim()) { setAddSubcategoryDefault(name.trim()); setShowAddModal(true); } },
+            style: { background: '#6b46c1', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
+          }, '+ ', lang === 'it' ? 'Sottocategoria' : 'Subcategory')
+        )
       ),
 
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
-        currentItems.map(item => {
+        (() => { const _isBarCat = barCats.includes(subCategory); return currentItems.flatMap((item, index) => {
           const isUnavailable = unavailableItems.includes(item.id);
-          return e('div', {
+          const _subHeader = _isBarCat && item.subcategory && (index === 0 || currentItems[index - 1].subcategory !== item.subcategory)
+            ? e('div', { key: 'subhdr-' + item.subcategory, style: { padding: '10px 16px', borderLeft: '4px solid ' + theme.accent, background: theme.catBg, borderRadius: '0 8px 8px 0', fontSize: '17px', fontWeight: '600', color: theme.accent, marginTop: index > 0 ? '8px' : '0' }}, item.subcategory)
+            : null;
+          const _card = e('div', {
             key: item.id,
             style: { background: theme.cardBg, borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
           },
@@ -616,6 +636,10 @@ function App() {
             isUnavailable && isAdmin && e('div', { style: {
               position: 'absolute', top: 0, right: 0, background: '#e53e3e', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '2px 10px', borderBottomLeftRadius: '8px', zIndex: 2
             }}, 'NON DISP.'),
+            isAdmin && e('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px', alignSelf: 'center' }},
+              e('button', { onClick: () => moveItem(subCategory, index, -1), disabled: index === 0, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === 0 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1, lineHeight: 1 }}, '\u25B2'),
+              e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC')
+            ),
             lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
             e('div', { style: { flex: 1, opacity: isUnavailable && !isAdmin ? 0.4 : 1 }},
               e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
@@ -641,7 +665,8 @@ function App() {
               )
             )
           );
-        })
+          return _subHeader ? [_subHeader, _card] : [_card];
+        }); })()
       ),
 
       e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
@@ -751,7 +776,7 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
   );
 }
 
-function EditModal({ item, lang, onSave, onClose }) {
+function EditModal({ item, lang, onSave, onClose, isBarCat }) {
   const [formData, setFormData] = useState({ ...item });
   
   const toggleAllergen = (a) => {
@@ -768,7 +793,17 @@ function EditModal({ item, lang, onSave, onClose }) {
       onClick: ev => ev.stopPropagation()
     },
       e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '✏️ Modifica Piatto'),
-      LANGUAGES.map(l => 
+      isBarCat && e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, lang === 'it' ? 'Sottocategoria' : 'Subcategory'),
+        e('input', {
+          type: 'text',
+          value: formData.subcategory || '',
+          onChange: ev => setFormData({ ...formData, subcategory: ev.target.value }),
+          placeholder: lang === 'it' ? 'es. Rossi, Bianchi...' : 'e.g. Red, White...',
+          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+        })
+      ),
+      LANGUAGES.map(l =>
         e('div', { key: l.code, style: { marginBottom: '16px' }},
           e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, l.flag, ' Nome (', l.name, ')'),
           e('input', {
@@ -820,8 +855,8 @@ function EditModal({ item, lang, onSave, onClose }) {
   );
 }
 
-function AddModal({ lang, onSave, onClose }) {
-  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '' });
+function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory }) {
+  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', subcategory: defaultSubcategory || '' });
   const [isTranslating, setIsTranslating] = useState(false);
   const [translated, setTranslated] = useState(false);
 
@@ -861,6 +896,16 @@ function AddModal({ lang, onSave, onClose }) {
       onClick: ev => ev.stopPropagation()
     },
       e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '➕ Aggiungi Piatto'),
+      isBarCat && e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, lang === 'it' ? 'Sottocategoria' : 'Subcategory'),
+        e('input', {
+          type: 'text',
+          value: formData.subcategory || '',
+          onChange: ev => setFormData({ ...formData, subcategory: ev.target.value }),
+          placeholder: lang === 'it' ? 'es. Rossi, Bianchi...' : 'e.g. Red, White...',
+          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+        })
+      ),
       e('div', { style: { marginBottom: '8px' }},
         e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '🇮🇹 Nome (Italiano)'),
         e('div', { style: { display: 'flex', gap: '8px' }},
