@@ -326,6 +326,25 @@ function App() {
 
   const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
 
+  const fixItemIds = (menuData) => {
+    let maxId = 0;
+    const cats = Object.entries(menuData).filter(([k]) => k !== '_subcategories');
+    cats.forEach(([, items]) => { if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; }); });
+    let needsSave = false;
+    const fixed = { ...menuData };
+    cats.forEach(([cat, items]) => {
+      if (!Array.isArray(items)) return;
+      fixed[cat] = items.map(i => {
+        if (typeof i.id !== 'number' || isNaN(i.id) || i.id === null || i.id === undefined) {
+          needsSave = true;
+          return { ...i, id: ++maxId };
+        }
+        return i;
+      });
+    });
+    return { menu: fixed, needsSave };
+  };
+
   const buildMenu = (data, useSunday) => {
     const beverages = {
       softdrinks: (data && data.softdrinks) || defaultMenu.softdrinks,
@@ -350,7 +369,9 @@ function App() {
           const useSunday = override === 'sunday' ? true : override === 'default' ? false : new Date().getDay() === 0;
 
           if (data.menu && Object.keys(data.menu).length > 0) {
-            setMenu(buildMenu(data.menu, useSunday));
+            const built = buildMenu(data.menu, useSunday);
+            const { menu: fixedMenu } = fixItemIds(built);
+            setMenu(fixedMenu);
             setSpecials(data.specials || defaultSpecials);
           } else {
             setMenu(buildMenu(null, useSunday));
@@ -447,7 +468,8 @@ function App() {
   };
 
   const addNewItem = (item) => {
-    const newId = Math.max(...Object.values(menu).flat().map(i => i.id)) + 1;
+    const allIds = Object.entries(menu).filter(([k]) => k !== '_subcategories').flatMap(([, v]) => Array.isArray(v) ? v : []).map(i => typeof i.id === 'number' && !isNaN(i.id) ? i.id : 0);
+    const newId = (allIds.length > 0 ? Math.max(...allIds) : 0) + 1;
     const newMenu = {
       ...menu,
       [subCategory]: [...menu[subCategory], { ...item, id: newId }]
