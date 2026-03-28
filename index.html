@@ -248,6 +248,36 @@ const defaultMenu = {
   ]
 };
 
+const sundayMenu = {
+  appetizers: [
+    { id: 501, name: { it: 'Tartare di Black Angus con senape antica e tuorlo confit', en: 'Black Angus tartare with whole-grain mustard and confit egg yolk', es: 'Tartar de Black Angus con mostaza antigua y yema confitada', fr: 'Tartare de Black Angus avec moutarde à l\'ancienne et jaune d\'œuf confit', de: 'Black Angus Tartar mit Senf und konfiertem Eigelb', zh: '黑安格斯牛肉鞑靼配古法芥末和蜜渍蛋黄', ja: 'ブラックアンガスのタルタル 粒マスタードとコンフィ卵黄添え' }, price: 16, allergens: ['eggs', 'mustard'], image: '' },
+    { id: 502, name: { it: 'Burrata alla carbonara con guanciale di Amatrice DOP', en: 'Burrata alla carbonara with Amatrice DOP guanciale', es: 'Burrata a la carbonara con guanciale de Amatrice DOP', fr: 'Burrata alla carbonara avec guanciale d\'Amatrice DOP', de: 'Burrata alla Carbonara mit Amatrice DOP Guanciale', zh: '卡拉拉风味布拉塔配阿马特里切DOP猪颊肉', ja: 'ブッラータ・アッラ・カルボナーラ アマトリーチェDOPグアンチャーレ添え' }, price: 12, allergens: ['dairy', 'eggs', 'pork'], image: '' },
+    { id: 503, name: { it: 'Panzanella estiva del Borgo (v)', en: 'Summer panzanella (v)', es: 'Panzanella veraniega (v)', fr: 'Panzanella estivale (v)', de: 'Sommer-Panzanella (v)', zh: '夏季面包沙拉 (素)', ja: '夏のパンツァネッラ (v)' }, price: 8, allergens: ['gluten'], image: '' },
+    { id: 504, name: { it: 'Selezione di salumi e formaggi del territorio', en: 'Selection of local cured meats and cheeses', es: 'Selección de embutidos y quesos del territorio', fr: 'Sélection de charcuteries et fromages du terroir', de: 'Auswahl an lokalen Wurstwaren und Käse', zh: '本地腌肉和奶酪精选', ja: '地元のサラミとチーズの盛り合わせ' }, price: 12, allergens: ['dairy', 'pork'], image: '' }
+  ],
+  primi: [
+    { id: 505, name: { it: 'Spaghettone burro & alici con chips di fiori di zucca', en: 'Spaghettone with butter and anchovies, crispy zucchini blossom chips', es: 'Spaghettone con mantequilla y anchoas, chips de flor de calabacín', fr: 'Spaghettone au beurre et anchois, chips de fleurs de courgette', de: 'Spaghettone mit Butter und Sardellen, knusprige Zucchiniblüten-Chips', zh: '黄油凤尾鱼意面配炸南瓜花片', ja: 'スパゲットーネ バター＆アンチョビ ズッキーニの花チップス添え' }, price: 14, allergens: ['gluten', 'dairy', 'fish'], image: '' },
+    { id: 506, name: { it: 'Fettuccine al ragù bianco con pesto di rucola e menta', en: 'Fettuccine with white meat ragù, rocket and mint pesto', es: 'Fettuccine con ragú blanco, pesto de rúcula y menta', fr: 'Fettuccine au ragù blanc, pesto de roquette et menthe', de: 'Fettuccine mit weißem Ragù, Rucola- und Minz-Pesto', zh: '白肉酱宽面配芝麻菜薄荷酱', ja: 'フェットチーネ 白いラグーとルッコラミントペスト' }, price: 14, allergens: ['gluten', 'dairy'], image: '' },
+    { id: 507, name: { it: 'Mezza manica guanciale, zucchine e stracciatella', en: 'Mezza manica with guanciale, zucchini and stracciatella', es: 'Mezza manica con guanciale, calabacín y stracciatella', fr: 'Mezza manica au guanciale, courgettes et stracciatella', de: 'Mezza Manica mit Guanciale, Zucchini und Stracciatella', zh: '半管面配猪颊肉、西葫芦和碎布拉塔', ja: 'メッツァマニカ グアンチャーレ、ズッキーニ、ストラッチャテッラ' }, price: 14, allergens: ['gluten', 'dairy', 'pork'], image: '' },
+    { id: 508, name: { it: 'Primo della tradizione Romana del giorno', en: 'Traditional Roman pasta dish of the day', es: 'Primer plato de la tradición romana del día', fr: 'Plat de pâtes traditionnel romain du jour', de: 'Traditionelles römisches Pasta-Gericht des Tages', zh: '每日罗马传统意面', ja: '本日のローマ伝統パスタ' }, price: 12, allergens: ['gluten'], image: '' }
+  ],
+  secondi: [
+    { id: 509, name: { it: 'Tagliata di manzo danese con pomodoro arrostito, insalatina aromatica e grana', en: 'Sliced Danish beef with roasted tomato, aromatic salad and grana', es: 'Tagliata de ternera danesa con tomate asado, ensalada aromática y grana', fr: 'Tagliata de bœuf danois avec tomate rôtie, salade aromatique et grana', de: 'Geschnittenes dänisches Rindfleisch mit gerösteter Tomate, aromatischem Salat und Grana', zh: '丹麦牛肉切片配烤番茄、香草沙拉和帕达诺奶酪', ja: 'デンマーク産ビーフのタリアータ ローストトマト、香りのサラダ、グラナチーズ添え' }, price: 25, allergens: ['dairy'], image: '' },
+    { id: 510, name: { it: 'Il nostro pollo ai peperoni', en: 'Our Roman chicken with peppers', es: 'Nuestro pollo a los pimientos', fr: 'Notre poulet aux poivrons', de: 'Unser Hähnchen mit Paprika', zh: '我们的罗马风味甜椒鸡', ja: 'ペペロナータ風チキン' }, price: 16, allergens: [], image: '' },
+    { id: 511, name: { it: 'Borgo Burger - Bun artigianale, Hamburger di manzo 180gr con bufala affumicata, cuore di bue e maionese al basilico, servito con patate fritte', en: 'Borgo Burger — artisan bun, 180g beef patty with smoked buffalo mozzarella, tomato and basil mayo, served with fries', es: 'Borgo Burger — pan artesanal, hamburguesa de 180g con mozzarella de búfala ahumada, tomate y mayonesa de albahaca, con patatas fritas', fr: 'Borgo Burger — pain artisanal, steak haché 180g avec mozzarella di bufala fumée, tomate et mayonnaise au basilic, servi avec frites', de: 'Borgo Burger — Handwerkliches Brötchen, 180g Rindfleisch-Patty mit geräuchertem Büffelmozzarella, Tomate und Basilikum-Mayo, serviert mit Pommes', zh: '博尔戈汉堡 — 手工面包，180克牛肉饼配烟熏水牛芝士、番茄和罗勒蛋黄酱，配薯条', ja: 'ボルゴバーガー — 職人パン、180gビーフパティ スモークブッファラ、トマト、バジルマヨネーズ ポテトフライ添え' }, price: 16, allergens: ['gluten', 'dairy', 'eggs'], image: '' }
+  ],
+  contorni: [
+    { id: 512, name: { it: 'Verdure grigliate', en: 'Grilled vegetables', es: 'Verduras a la parrilla', fr: 'Légumes grillés', de: 'Gegrilltes Gemüse', zh: '烤蔬菜', ja: 'グリル野菜' }, price: 6, allergens: [], image: '' },
+    { id: 513, name: { it: 'Patate al forno', en: 'Oven-roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Ofenkartoffeln', zh: '烤土豆', ja: 'オーブンローストポテト' }, price: 6, allergens: [], image: '' },
+    { id: 514, name: { it: 'Insalata mista', en: 'Mixed salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: [], image: '' },
+    { id: 515, name: { it: 'Verdura del giorno ripassata', en: 'Sautéed vegetable of the day', es: 'Verdura del día salteada', fr: 'Légume du jour sauté', de: 'Sautiertes Tagesgemüse', zh: '炒时令蔬菜', ja: '本日の野菜のソテー' }, price: 6, allergens: [], image: '' }
+  ],
+  dessert: [
+    { id: 516, name: { it: 'Crostatina crema al mascarpone e frutti di bosco o cacao', en: 'Mascarpone cream tart with berries or chocolate', es: 'Tartaleta de crema de mascarpone con frutos del bosque o cacao', fr: 'Tartelette à la crème de mascarpone avec fruits des bois ou cacao', de: 'Mascarpone-Creme-Törtchen mit Beeren oder Kakao', zh: '马斯卡彭奶油挞配浆果或可可', ja: 'マスカルポーネクリームタルト ベリーまたはカカオ添え' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
+    { id: 517, name: { it: 'Panna cotta agli agrumi o caramello salato', en: 'Panna cotta with citrus or salted caramel', es: 'Panna cotta de cítricos o caramelo salado', fr: 'Panna cotta aux agrumes ou caramel salé', de: 'Panna Cotta mit Zitrus oder Salzkaramell', zh: '柑橘或咸焦糖奶冻', ja: 'パンナコッタ 柑橘風味または塩キャラメル' }, price: 6, allergens: ['dairy'], image: '' }
+  ]
+};
+
 const defaultSpecials = [
   { id: 101, name: { it: 'Carbonara tradizionale', en: 'Traditional carbonara', es: 'Carbonara tradicional', fr: 'Carbonara traditionnelle', de: 'Traditionelle Carbonara', zh: '传统卡尔博纳拉', ja: '伝統的なカルボナーラ' }, price: 14, description: { it: 'Con guanciale croccante e pecorino romano DOP', en: 'With crispy guanciale and DOP pecorino romano', es: 'Con guanciale crujiente y pecorino romano DOP', fr: 'Avec guanciale croustillant et pecorino romano DOP', de: 'Mit knusprigem Guanciale und DOP Pecorino Romano', zh: '配酥脆猪颊肉和罗马佩科里诺DOP奶酪', ja: 'カリカリのグアンチャーレとDOPペコリーノ・ロマーノ添え' }},
   { id: 102, name: { it: 'Filetto di branzino', en: 'Sea bass fillet', es: 'Filete de lubina', fr: 'Filet de bar', de: 'Wolfsbarschfilet', zh: '海鲈鱼片', ja: 'スズキのフィレ' }, price: 22, description: { it: 'Con verdure di stagione e salsa agli agrumi', en: 'With seasonal vegetables and citrus sauce', es: 'Con verduras de temporada y salsa de cítricos', fr: 'Avec légumes de saison et sauce aux agrumes', de: 'Mit saisonalem Gemüse und Zitrussauce', zh: '配时令蔬菜和柑橘酱', ja: '季節の野菜と柑橘系ソース添え' }}
@@ -278,6 +308,9 @@ function App() {
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPinHash, setAdminPinHash] = useState(null);
+  const [unavailableItems, setUnavailableItems] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('unavailableItems') || '[]'); } catch { return []; }
+  });
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -295,19 +328,37 @@ function App() {
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+  const isSunday = new Date().getDay() === 0;
 
   useEffect(() => {
     async function loadMenu() {
       try {
         const data = await supabase.getMenu();
         if (data && data.menu && Object.keys(data.menu).length > 0) {
-          setMenu(data.menu);
+          let loadedMenu = data.menu;
+          if (isSunday) {
+            // On Sunday: use sundayMenu for food, keep beverages from DB
+            loadedMenu = {
+              ...sundayMenu,
+              softdrinks: data.menu.softdrinks || defaultMenu.softdrinks,
+              wine: data.menu.wine || defaultMenu.wine,
+              beer: data.menu.beer || defaultMenu.beer,
+              cocktails: data.menu.cocktails || defaultMenu.cocktails,
+              spirits: data.menu.spirits || defaultMenu.spirits
+            };
+          }
+          setMenu(loadedMenu);
           setSpecials(data.specials || defaultSpecials);
         } else {
-          // No data in DB yet — use local defaults (admin save will persist them)
+          if (isSunday) {
+            setMenu({ ...sundayMenu, softdrinks: defaultMenu.softdrinks, wine: defaultMenu.wine, beer: defaultMenu.beer, cocktails: defaultMenu.cocktails, spirits: defaultMenu.spirits });
+          }
         }
       } catch (error) {
         console.error('Error loading menu:', error);
+        if (isSunday) {
+          setMenu({ ...sundayMenu, softdrinks: defaultMenu.softdrinks, wine: defaultMenu.wine, beer: defaultMenu.beer, cocktails: defaultMenu.cocktails, spirits: defaultMenu.spirits });
+        }
       } finally {
         setIsLoading(false);
         document.getElementById('loading').style.display = 'none';
@@ -413,6 +464,14 @@ function App() {
     setShowEditSpecials(false);
   };
 
+  const toggleUnavailable = (itemId) => {
+    const updated = unavailableItems.includes(itemId)
+      ? unavailableItems.filter(id => id !== itemId)
+      : [...unavailableItems, itemId];
+    setUnavailableItems(updated);
+    localStorage.setItem('unavailableItems', JSON.stringify(updated));
+  };
+
   useEffect(() => {
     if (mainTab === 'kitchen' && !kitchenCats.includes(subCategory)) {
       setSubCategory('appetizers');
@@ -425,15 +484,47 @@ function App() {
 
   if (isLoading) return null;
 
-  return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: 'linear-gradient(135deg, #fff8f5 0%, #fff 100%)' }},
+  const theme = isSunday ? {
+    bg: 'linear-gradient(135deg, #f5e6d3 0%, #fdf2e9 100%)',
+    header: '#d4842a',
+    accent: '#d4842a',
+    navBg: '#fdf2e9',
+    navBorder: '#e8c9a0',
+    catBorder: '#d4842a',
+    catBg: '#fdf2e9',
+    cardBg: '#fff',
+    cardBorder: '#e8c9a0',
+    titleColor: '#5a3e1b',
+    priceColor: '#d4842a',
+    tabActive: '#d4842a',
+    legendBg: '#fdf2e9',
+    footerColor: '#b8860b'
+  } : {
+    bg: 'linear-gradient(135deg, #fff8f5 0%, #fff 100%)',
+    header: '#ca4d4f',
+    accent: '#ca4d4f',
+    navBg: '#fff',
+    navBorder: '#e2e8f0',
+    catBorder: '#ca4d4f',
+    catBg: '#f7fafc',
+    cardBg: '#fff',
+    cardBorder: '#e2e8f0',
+    titleColor: '#2d3748',
+    priceColor: '#ca4d4f',
+    tabActive: '#ca4d4f',
+    legendBg: '#f7fafc',
+    footerColor: '#a0aec0'
+  };
+
+  return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
     showSpecials && e(SpecialsPopup, { specials, lang, onClose: () => setShowSpecials(false) }),
     showPinModal && e(PinModal, { pin, setPin, onSubmit: checkPin, onClose: () => { setShowPinModal(false); setPin(''); }}),
     showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }}),
     showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => setShowAddModal(false) }),
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
-    e('header', { style: { background: '#ca4d4f', padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
-      e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }}),
+    e('header', { style: { background: theme.header, padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
+      e('img', { src: isSunday ? 'sunday_logo.png' : 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }}),
       e('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }},
         e('div', { style: { position: 'relative' }},
           e('button', { 
@@ -446,7 +537,7 @@ function App() {
             LANGUAGES.map(l => e('button', {
               key: l.code,
               onClick: () => { setLang(l.code); setShowLangMenu(false); },
-              style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? '#ca4d4f' : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
+              style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? theme.accent : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
             }, l.flag, ' ', l.name))
           )
         ),
@@ -465,54 +556,67 @@ function App() {
       )
     ),
     
-    e('nav', { style: { background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '0 24px', overflowX: 'auto' }},
+    e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '0 24px', overflowX: 'auto' }},
       e('div', { style: { display: 'flex', gap: '0' }},
         e('button', {
           onClick: () => setMainTab('kitchen'),
-          style: { padding: '16px 32px', border: 'none', background: mainTab === 'kitchen' ? '#ca4d4f' : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          style: { padding: '16px 32px', border: 'none', background: mainTab === 'kitchen' ? theme.tabActive : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
         }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
         e('button', {
           onClick: () => setMainTab('bar'),
-          style: { padding: '16px 32px', border: 'none', background: mainTab === 'bar' ? '#ca4d4f' : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          style: { padding: '16px 32px', border: 'none', background: mainTab === 'bar' ? theme.tabActive : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
         }, '🍸 Bar')
       )
     ),
-    
-    e('div', { style: { display: 'flex', gap: '8px', padding: '16px 24px', background: '#f7fafc', flexWrap: 'wrap' }},
-      (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat => 
+
+    e('div', { style: { display: 'flex', gap: '8px', padding: '16px 24px', background: theme.catBg, flexWrap: 'wrap' }},
+      (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
         e('button', {
           key: cat,
           onClick: () => setSubCategory(cat),
-          style: { padding: '10px 20px', border: subCategory === cat ? '2px solid #ca4d4f' : '1px solid #e2e8f0', background: subCategory === cat ? '#fff' : '#fff', color: subCategory === cat ? '#ca4d4f' : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400' }
+          style: { padding: '10px 20px', border: subCategory === cat ? '2px solid ' + theme.catBorder : '1px solid ' + theme.navBorder, background: subCategory === cat ? '#fff' : '#fff', color: subCategory === cat ? theme.accent : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400' }
         }, CATEGORY_NAMES[cat]?.[lang] || cat)
       )
     ),
     
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
-        e('h2', { style: { margin: 0, color: '#ca4d4f', fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+        e('h2', { style: { margin: 0, color: theme.accent, fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
         isAdmin && e('button', {
           onClick: () => setShowAddModal(true),
           style: { background: '#38a169', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
         }, '+ ', lang === 'it' ? 'Aggiungi' : 'Add')
       ),
-      
+
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
-        currentItems.map(item => 
-          e('div', { 
+        currentItems.map(item => {
+          const isUnavailable = unavailableItems.includes(item.id);
+          return e('div', {
             key: item.id,
-            style: { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e2e8f0', display: 'flex', gap: '16px', alignItems: 'flex-start' }
+            style: { background: theme.cardBg, borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
           },
-            lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }, referrerPolicy: 'no-referrer' }),
-            e('div', { style: { flex: 1 }},
+            isUnavailable && !isAdmin && e('div', { style: {
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '12px'
+            }},
+              e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, 'Non Disponibile')
+            ),
+            isUnavailable && isAdmin && e('div', { style: {
+              position: 'absolute', top: 0, right: 0, background: '#e53e3e', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '2px 10px', borderBottomLeftRadius: '8px', zIndex: 2
+            }}, 'NON DISP.'),
+            lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
+            e('div', { style: { flex: 1, opacity: isUnavailable && !isAdmin ? 0.4 : 1 }},
               e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
-                e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: '#2d3748', flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
-                e('span', { style: { fontSize: '18px', fontWeight: '600', color: '#ca4d4f', whiteSpace: 'nowrap' }}, '€ ', item.price.toFixed(2))
+                e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
+                e('span', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '€ ', item.price.toFixed(2))
               ),
               item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
                 item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
               ),
-              isAdmin && e('div', { style: { display: 'flex', gap: '8px', marginTop: '12px' }},
+              isAdmin && e('div', { style: { display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }},
+                e('button', {
+                  onClick: () => toggleUnavailable(item.id),
+                  style: { background: isUnavailable ? '#38a169' : '#dd6b20', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
+                }, isUnavailable ? '✅ Disponibile' : '⛔ Non Disponibile'),
                 e('button', {
                   onClick: () => { setEditItem(item); setShowEditModal(true); },
                   style: { background: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
@@ -523,11 +627,11 @@ function App() {
                 }, '🗑️ Elimina')
               )
             )
-          )
-        )
+          );
+        })
       ),
-      
-      e('div', { style: { marginTop: '32px', padding: '16px', background: '#f7fafc', borderRadius: '12px' }},
+
+      e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
         e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
         e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
           Object.entries(ALLERGENS).map(([key, val]) => 
@@ -540,7 +644,7 @@ function App() {
       )
     ),
     
-    e('footer', { style: { textAlign: 'center', padding: '24px', color: '#a0aec0', fontSize: '12px' }},
+    e('footer', { style: { textAlign: 'center', padding: '24px', color: theme.footerColor, fontSize: '12px' }},
       e('span', { 
         onClick: handleCopyrightClick,
         style: { cursor: 'default', userSelect: 'none' }
