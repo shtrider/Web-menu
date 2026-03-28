@@ -87,7 +87,10 @@ const supabase = {
       `${SUPABASE_URL}/functions/v1/save-menu`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        },
         body: JSON.stringify({ menu, specials, pinHash })
       },
       15000
