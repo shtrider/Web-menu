@@ -82,12 +82,21 @@ const supabase = {
     return data[0] || null;
   },
   
-  async saveMenu(menu, specials) {
-    const payload = { menu, specials, updated_at: new Date().toISOString() };
-    const patched = await this.fetch('menu_data?id=eq.main', 'PATCH', payload);
-    if (Array.isArray(patched) && patched.length === 0) {
-      await this.fetch('menu_data', 'POST', { id: 'main', ...payload });
+  async saveMenu(menu, specials, pinHash) {
+    const response = await fetchWithTimeout(
+      `${SUPABASE_URL}/functions/v1/save-menu`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ menu, specials, pinHash })
+      },
+      15000
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${response.status}`);
     }
+    return response.json();
   }
 };
 
@@ -265,6 +274,7 @@ function App() {
   const [mainTab, setMainTab] = useState('kitchen');
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPinHash, setAdminPinHash] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -291,7 +301,7 @@ function App() {
           setMenu(data.menu);
           setSpecials(data.specials || defaultSpecials);
         } else {
-          await supabase.saveMenu(defaultMenu, defaultSpecials);
+          // No data in DB yet — use local defaults (admin save will persist them)
         }
       } catch (error) {
         console.error('Error loading menu:', error);
@@ -312,7 +322,7 @@ function App() {
   const saveToSupabase = async (newMenu, newSpecials) => {
     showSyncStatus('saving', '💾 Salvando...');
     try {
-      await supabase.saveMenu(newMenu, newSpecials);
+      await supabase.saveMenu(newMenu, newSpecials, adminPinHash);
       showSyncStatus('saved', '✅ Salvato!');
     } catch (error) {
       console.error('Error saving:', error);
@@ -345,6 +355,7 @@ function App() {
       .map(b => b.toString(16).padStart(2, '0')).join('');
     if (hashHex === PIN_HASH) {
       setIsAdmin(true);
+      setAdminPinHash(hashHex);
       setShowPinModal(false);
       setPin('');
       setFailedAttempts(0);
