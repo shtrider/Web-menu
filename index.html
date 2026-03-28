@@ -138,57 +138,30 @@ const sanitizeText = (text, maxLen = 300) => {
 };
 
 const ALLERGENS = {
-  gluten: { name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten', zh: '麸质', ja: 'グルテン' }},
-  dairy: { name: { it: 'Latticini', en: 'Dairy', es: 'Lácteos', fr: 'Produits laitiers', de: 'Milch', zh: '乳制品', ja: '乳製品' }},
-  nuts: { name: { it: 'Frutta a guscio', en: 'Nuts', es: 'Frutos secos', fr: 'Noix', de: 'Nüsse', zh: '坚果', ja: 'ナッツ' }},
-  fish: { name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch', zh: '鱼', ja: '魚' }},
-  shellfish: { name: { it: 'Crostacei', en: 'Shellfish', es: 'Mariscos', fr: 'Crustacés', de: 'Schalentiere', zh: '贝类', ja: '甲殻類' }},
-  eggs: { name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier', zh: '鸡蛋', ja: '卵' }},
-  soy: { name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja', zh: '大豆', ja: '大豆' }},
-  celery: { name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie', zh: '芹菜', ja: 'セロリ' }},
-  mustard: { name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf', zh: '芥末', ja: 'マスタード' }},
-  sesame: { name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam', zh: '芝麻', ja: 'ゴマ' }},
-  sulfites: { name: { it: 'Solfiti', en: 'Sulfites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite', zh: '亚硫酸盐', ja: '亜硫酸塩' }},
-  pork: { name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein', zh: '猪肉', ja: '豚肉' }}
+  celery: { icon: 'celery', name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie', zh: '芹菜', ja: 'セロリ' }},
+  gluten: { icon: 'cereal', name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten', zh: '麸质', ja: 'グルテン' }},
+  crustaceans: { icon: 'crustaceans', name: { it: 'Crostacei', en: 'Crustaceans', es: 'Crustáceos', fr: 'Crustacés', de: 'Krebstiere', zh: '甲壳类', ja: '甲殻類' }},
+  eggs: { icon: 'eggs', name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier', zh: '鸡蛋', ja: '卵' }},
+  fish: { icon: 'fish', name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch', zh: '鱼', ja: '魚' }},
+  lupin: { icon: 'lupin', name: { it: 'Lupini', en: 'Lupin', es: 'Altramuces', fr: 'Lupin', de: 'Lupinen', zh: '羽扇豆', ja: 'ルピナス' }},
+  dairy: { icon: 'milk', name: { it: 'Latticini', en: 'Milk', es: 'Lácteos', fr: 'Lait', de: 'Milch', zh: '乳制品', ja: '乳製品' }},
+  molluscs: { icon: 'molluscs', name: { it: 'Molluschi', en: 'Molluscs', es: 'Moluscos', fr: 'Mollusques', de: 'Weichtiere', zh: '软体动物', ja: '軟体動物' }},
+  mustard: { icon: 'mustard', name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf', zh: '芥末', ja: 'マスタード' }},
+  nuts: { icon: 'nuts', name: { it: 'Frutta a guscio', en: 'Tree Nuts', es: 'Frutos secos', fr: 'Fruits à coque', de: 'Schalenfrüchte', zh: '坚果', ja: 'ナッツ' }},
+  peanuts: { icon: 'peanuts', name: { it: 'Arachidi', en: 'Peanuts', es: 'Cacahuetes', fr: 'Arachides', de: 'Erdnüsse', zh: '花生', ja: 'ピーナッツ' }},
+  sesame: { icon: 'sesame', name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam', zh: '芝麻', ja: 'ゴマ' }},
+  sulfites: { icon: 'so2', name: { it: 'Solfiti', en: 'Sulphites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite', zh: '亚硫酸盐', ja: '亜硫酸塩' }},
+  soy: { icon: 'soya', name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja', zh: '大豆', ja: '大豆' }},
+  vegetarian: { icon: 'vegetarian', name: { it: 'Vegetariano', en: 'Vegetarian', es: 'Vegetariano', fr: 'Végétarien', de: 'Vegetarisch', zh: '素食', ja: 'ベジタリアン' }},
+  pork: { icon: 'pork', name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein', zh: '猪肉', ja: '豚肉' }}
 };
 
 const AllergenIcon = ({ type, lang }) => {
-  const icons = {
-    gluten: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M12 2v20M8 6c0-2 4-2 4 0v4c0 2-4 2-4 0V6zM16 6c0-2-4-2-4 0M8 14c0-2 4-2 4 0v4c0 2-4 2-4 0v-4zM16 14c0-2-4-2-4 0' })),
-    dairy: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M8 2h8l1 5H7l1-5zM7 7h10v2a2 2 0 01-2 2H9a2 2 0 01-2-2V7zM9 11h6v9a2 2 0 01-2 2h-2a2 2 0 01-2-2v-9z' })),
-    nuts: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('ellipse', { cx: 12, cy: 14, rx: 6, ry: 7 }),
-      e('path', { d: 'M9 7c0-3 6-3 6 0M12 7v3' })),
-    fish: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7zM18 12l4-3v6l-4-3zM9 12a1 1 0 102 0 1 1 0 00-2 0' })),
-    shellfish: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M4 12c0-5 3.5-8 8-8s8 3 8 8M4 12c0 4 3.5 8 8 8s8-4 8-8M4 12h16M8 6v12M12 4v16M16 6v12' })),
-    eggs: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('ellipse', { cx: 12, cy: 14, rx: 7, ry: 8 }),
-      e('ellipse', { cx: 12, cy: 15, rx: 3, ry: 3.5 })),
-    soy: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M6 12c0-4 2.5-8 6-8s6 4 6 8-2.5 8-6 8-6-4-6-8zM8 10a2 2 0 104 0 2 2 0 00-4 0zM12 14a2 2 0 104 0 2 2 0 00-4 0' })),
-    celery: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M12 22V8M12 8c-2-4-5-5-5-5s1 3 0 5c-1 2 1 5 5 5M12 8c2-4 5-5 5-5s-1 3 0 5c1 2-1 5-5 5' })),
-    mustard: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M9 3h6v3H9zM8 6h8l1 4H7l1-4zM7 10h10v10a2 2 0 01-2 2H9a2 2 0 01-2-2V10z' })),
-    sesame: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('ellipse', { cx: 8, cy: 8, rx: 2.5, ry: 4, transform: 'rotate(-30 8 8)' }),
-      e('ellipse', { cx: 16, cy: 10, rx: 2.5, ry: 4, transform: 'rotate(20 16 10)' }),
-      e('ellipse', { cx: 10, cy: 17, rx: 2.5, ry: 4, transform: 'rotate(-10 10 17)' })),
-    sulfites: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('path', { d: 'M8 22h8M12 22v-9M7 2l1 4h8l1-4M8 6c0 4-3 5-3 8a7 7 0 0014 0c0-3-3-4-3-8' })),
-    pork: e('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '#555', strokeWidth: 1.5 },
-      e('circle', { cx: 12, cy: 12, r: 8 }),
-      e('ellipse', { cx: 9, cy: 10, rx: 1.5, ry: 2 }),
-      e('ellipse', { cx: 15, cy: 10, rx: 1.5, ry: 2 }),
-      e('ellipse', { cx: 12, cy: 14, rx: 3, ry: 2 }),
-      e('circle', { cx: 10.5, cy: 14, r: 0.8, fill: '#555' }),
-      e('circle', { cx: 13.5, cy: 14, r: 0.8, fill: '#555' }))
-  };
-  return e('span', { title: ALLERGENS[type]?.name[lang] || type, style: { cursor: 'help', display: 'inline-flex' } }, icons[type] || null);
+  const allergen = ALLERGENS[type];
+  if (!allergen) return null;
+  return e('span', { title: allergen.name[lang] || type, style: { cursor: 'help', display: 'inline-flex' } },
+    e('img', { src: 'allergens/' + allergen.icon + '.svg', alt: allergen.name[lang] || type, width: 20, height: 20, style: { opacity: 0.7 } })
+  );
 };
 
 const LANGUAGES = [
@@ -218,9 +191,9 @@ const defaultMenu = {
   appetizers: [
     { id: 1, name: { it: 'Battuta di Black Angus con crema di peperoni arrosto e nocciole tostate', en: 'Black Angus tartare with roasted pepper cream and toasted hazelnuts', es: 'Tartar de Black Angus con crema de pimientos asados y avellanas tostadas', fr: 'Tartare de Black Angus avec crème de poivrons rôtis et noisettes grillées', de: 'Black Angus Tartar mit gerösteter Paprikacreme und gerösteten Haselnüssen', zh: '黑安格斯牛肉鞑靼配烤甜椒奶油和烤榛子', ja: 'ブラックアンガスのタルタル ローストペッパークリームとトーストヘーゼルナッツ添え' }, price: 16, allergens: ['nuts'], image: '' },
     { id: 2, name: { it: 'Bruschettine con lardo di Colonnata, castagne e miele', en: 'Bruschettas with Colonnata lard, chestnuts and honey', es: 'Bruschetas con lardo de Colonnata, castañas y miel', fr: 'Bruschettas au lard de Colonnata, châtaignes et miel', de: 'Bruschetta mit Colonnata Speck, Kastanien und Honig', zh: '科隆纳塔猪脂面包片配栗子和蜂蜜', ja: 'コロンナータのラルドのブルスケッタ 栗とハチミツ添え' }, price: 7, allergens: ['gluten', 'pork'], image: '' },
-    { id: 3, name: { it: 'Flan di cavolfiore con fonduta al Parmigiano Reggiano con chips di porro', en: 'Cauliflower flan with Parmigiano Reggiano fondue and leek chips', es: 'Flan de coliflor con fonduta de Parmigiano Reggiano y chips de puerro', fr: 'Flan de chou-fleur avec fondue au Parmigiano Reggiano et chips de poireau', de: 'Blumenkohlpudding mit Parmigiano Reggiano Fondue und Lauch-Chips', zh: '花椰菜布丁配帕尔马干酪火锅和韭葱脆片', ja: 'カリフラワーフラン パルミジャーノ・レッジャーノフォンデュとネギチップス添え' }, price: 7, allergens: ['dairy', 'eggs'], image: '' },
+    { id: 3, name: { it: 'Flan di cavolfiore con fonduta al Parmigiano Reggiano con chips di porro', en: 'Cauliflower flan with Parmigiano Reggiano fondue and leek chips', es: 'Flan de coliflor con fonduta de Parmigiano Reggiano y chips de puerro', fr: 'Flan de chou-fleur avec fondue au Parmigiano Reggiano et chips de poireau', de: 'Blumenkohlpudding mit Parmigiano Reggiano Fondue und Lauch-Chips', zh: '花椰菜布丁配帕尔马干酪火锅和韭葱脆片', ja: 'カリフラワーフラン パルミジャーノ・レッジャーノフォンデュとネギチップス添え' }, price: 7, allergens: ['dairy', 'eggs', 'vegetarian'], image: '' },
     { id: 4, name: { it: 'Selezione di salumi e formaggi artigianali con miele di castagno', en: 'Selection of local cold cuts and cheeses with chestnut honey', es: 'Selección de embutidos y quesos artesanales con miel de castaña', fr: 'Sélection de charcuteries et fromages artisanaux avec miel de châtaignier', de: 'Auswahl an hausgemachten Wurstwaren und Käse mit Kastanienhonig', zh: '精选手工腌肉和奶酪配栗子蜂蜜', ja: '自家製サラミとチーズの盛り合わせ 栗のハチミツ添え' }, price: 12, allergens: ['dairy', 'pork'], image: '' },
-    { id: 5, name: { it: 'Focaccia olio EVO e rosmarino', en: 'Focaccia with EVO oil and rosemary', es: 'Focaccia con aceite de oliva y romero', fr: 'Focaccia à l\'huile d\'olive et romarin', de: 'Focaccia mit Olivenöl und Rosmarin', zh: '佛卡恰特级初榨橄榄油和迷迭香', ja: 'フォカッチャ エキストラバージンオリーブオイルとローズマリー' }, price: 5, allergens: ['gluten'], image: '' }
+    { id: 5, name: { it: 'Focaccia olio EVO e rosmarino', en: 'Focaccia with EVO oil and rosemary', es: 'Focaccia con aceite de oliva y romero', fr: 'Focaccia à l\'huile d\'olive et romarin', de: 'Focaccia mit Olivenöl und Rosmarin', zh: '佛卡恰特级初榨橄榄油和迷迭香', ja: 'フォカッチャ エキストラバージンオリーブオイルとローズマリー' }, price: 5, allergens: ['gluten', 'vegetarian'], image: '' }
   ],
   primi: [
     { id: 6, name: { it: 'Spaghetti al ragù bolognese', en: 'Spaghetti in Bolognese sauce', es: 'Espaguetis a la boloñesa', fr: 'Spaghetti à la bolognaise', de: 'Spaghetti Bolognese', zh: '肉酱意大利面', ja: 'ボロネーゼソースのスパゲッティ' }, price: 14, allergens: ['gluten', 'celery'], image: '' },
@@ -235,10 +208,10 @@ const defaultMenu = {
     { id: 13, name: { it: 'Burger di scottona con verza viola, provola affumicata, bacon croccante e maionese alla n\'duja', en: 'Scottona beef burger with purple cabbage, smoked provola, crispy bacon and mayonnaise with \'nduja', es: 'Hamburguesa de scottona con col lombarda, provola ahumada, bacon crujiente y mayonesa de \'nduja', fr: 'Burger de scottona avec chou rouge, provola fumée, bacon croustillant et mayonnaise à la \'nduja', de: 'Scottona Burger mit Rotkohl, geräuchertem Provola, knusprigem Speck und \'Nduja-Mayonnaise', zh: 'Scottona汉堡配紫色卷心菜、烟熏普罗沃拉、酥脆培根和nduja蛋黄酱', ja: 'スコットーナバーガー 紫キャベツ、スモークプロヴォラ、カリカリベーコン、ンドゥイヤマヨネーズ添え' }, price: 16, allergens: ['gluten', 'dairy', 'eggs', 'pork'], image: '' }
   ],
   contorni: [
-    { id: 14, name: { it: 'Patate al forno', en: 'Roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Bratkartoffeln', zh: '烤土豆', ja: 'ローストポテト' }, price: 6, allergens: [], image: '' },
-    { id: 15, name: { it: 'Broccoletti ripassati', en: 'Sautéed broccoli raab', es: 'Brócoli salteado', fr: 'Brocoli sauté', de: 'Gebratener Brokkoli', zh: '炒西兰花', ja: 'ブロッコリーのソテー' }, price: 6, allergens: [], image: '' },
-    { id: 16, name: { it: 'Insalata mista', en: 'Mixed garden salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: [], image: '' },
-    { id: 17, name: { it: 'Verdura del giorno', en: 'Vegetable of the day', es: 'Verdura del día', fr: 'Légume du jour', de: 'Tagesgemüse', zh: '当日蔬菜', ja: '本日の野菜' }, price: 6, allergens: [], image: '' }
+    { id: 14, name: { it: 'Patate al forno', en: 'Roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Bratkartoffeln', zh: '烤土豆', ja: 'ローストポテト' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 15, name: { it: 'Broccoletti ripassati', en: 'Sautéed broccoli raab', es: 'Brócoli salteado', fr: 'Brocoli sauté', de: 'Gebratener Brokkoli', zh: '炒西兰花', ja: 'ブロッコリーのソテー' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 16, name: { it: 'Insalata mista', en: 'Mixed garden salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 17, name: { it: 'Verdura del giorno', en: 'Vegetable of the day', es: 'Verdura del día', fr: 'Légume du jour', de: 'Tagesgemüse', zh: '当日蔬菜', ja: '本日の野菜' }, price: 6, allergens: ['vegetarian'], image: '' }
   ],
   dessert: [
     { id: 18, name: { it: 'Tiramisù', en: 'Classic tiramisu', es: 'Tiramisú clásico', fr: 'Tiramisu classique', de: 'Klassisches Tiramisu', zh: '提拉米苏', ja: 'ティラミス' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
@@ -272,7 +245,7 @@ const sundayMenu = {
   appetizers: [
     { id: 501, name: { it: 'Tartare di Black Angus con senape antica e tuorlo confit', en: 'Black Angus tartare with whole-grain mustard and confit egg yolk', es: 'Tartar de Black Angus con mostaza antigua y yema confitada', fr: 'Tartare de Black Angus avec moutarde à l\'ancienne et jaune d\'œuf confit', de: 'Black Angus Tartar mit Senf und konfiertem Eigelb', zh: '黑安格斯牛肉鞑靼配古法芥末和蜜渍蛋黄', ja: 'ブラックアンガスのタルタル 粒マスタードとコンフィ卵黄添え' }, price: 16, allergens: ['eggs', 'mustard'], image: '' },
     { id: 502, name: { it: 'Burrata alla carbonara con guanciale di Amatrice DOP', en: 'Burrata alla carbonara with Amatrice DOP guanciale', es: 'Burrata a la carbonara con guanciale de Amatrice DOP', fr: 'Burrata alla carbonara avec guanciale d\'Amatrice DOP', de: 'Burrata alla Carbonara mit Amatrice DOP Guanciale', zh: '卡拉拉风味布拉塔配阿马特里切DOP猪颊肉', ja: 'ブッラータ・アッラ・カルボナーラ アマトリーチェDOPグアンチャーレ添え' }, price: 12, allergens: ['dairy', 'eggs', 'pork'], image: '' },
-    { id: 503, name: { it: 'Panzanella estiva del Borgo (v)', en: 'Summer panzanella (v)', es: 'Panzanella veraniega (v)', fr: 'Panzanella estivale (v)', de: 'Sommer-Panzanella (v)', zh: '夏季面包沙拉 (素)', ja: '夏のパンツァネッラ (v)' }, price: 8, allergens: ['gluten'], image: '' },
+    { id: 503, name: { it: 'Panzanella estiva del Borgo (v)', en: 'Summer panzanella (v)', es: 'Panzanella veraniega (v)', fr: 'Panzanella estivale (v)', de: 'Sommer-Panzanella (v)', zh: '夏季面包沙拉 (素)', ja: '夏のパンツァネッラ (v)' }, price: 8, allergens: ['gluten', 'vegetarian'], image: '' },
     { id: 504, name: { it: 'Selezione di salumi e formaggi del territorio', en: 'Selection of local cured meats and cheeses', es: 'Selección de embutidos y quesos del territorio', fr: 'Sélection de charcuteries et fromages du terroir', de: 'Auswahl an lokalen Wurstwaren und Käse', zh: '本地腌肉和奶酪精选', ja: '地元のサラミとチーズの盛り合わせ' }, price: 12, allergens: ['dairy', 'pork'], image: '' }
   ],
   primi: [
@@ -287,10 +260,10 @@ const sundayMenu = {
     { id: 511, name: { it: 'Borgo Burger - Bun artigianale, Hamburger di manzo 180gr con bufala affumicata, cuore di bue e maionese al basilico, servito con patate fritte', en: 'Borgo Burger — artisan bun, 180g beef patty with smoked buffalo mozzarella, tomato and basil mayo, served with fries', es: 'Borgo Burger — pan artesanal, hamburguesa de 180g con mozzarella de búfala ahumada, tomate y mayonesa de albahaca, con patatas fritas', fr: 'Borgo Burger — pain artisanal, steak haché 180g avec mozzarella di bufala fumée, tomate et mayonnaise au basilic, servi avec frites', de: 'Borgo Burger — Handwerkliches Brötchen, 180g Rindfleisch-Patty mit geräuchertem Büffelmozzarella, Tomate und Basilikum-Mayo, serviert mit Pommes', zh: '博尔戈汉堡 — 手工面包，180克牛肉饼配烟熏水牛芝士、番茄和罗勒蛋黄酱，配薯条', ja: 'ボルゴバーガー — 職人パン、180gビーフパティ スモークブッファラ、トマト、バジルマヨネーズ ポテトフライ添え' }, price: 16, allergens: ['gluten', 'dairy', 'eggs'], image: '' }
   ],
   contorni: [
-    { id: 512, name: { it: 'Verdure grigliate', en: 'Grilled vegetables', es: 'Verduras a la parrilla', fr: 'Légumes grillés', de: 'Gegrilltes Gemüse', zh: '烤蔬菜', ja: 'グリル野菜' }, price: 6, allergens: [], image: '' },
-    { id: 513, name: { it: 'Patate al forno', en: 'Oven-roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Ofenkartoffeln', zh: '烤土豆', ja: 'オーブンローストポテト' }, price: 6, allergens: [], image: '' },
-    { id: 514, name: { it: 'Insalata mista', en: 'Mixed salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: [], image: '' },
-    { id: 515, name: { it: 'Verdura del giorno ripassata', en: 'Sautéed vegetable of the day', es: 'Verdura del día salteada', fr: 'Légume du jour sauté', de: 'Sautiertes Tagesgemüse', zh: '炒时令蔬菜', ja: '本日の野菜のソテー' }, price: 6, allergens: [], image: '' }
+    { id: 512, name: { it: 'Verdure grigliate', en: 'Grilled vegetables', es: 'Verduras a la parrilla', fr: 'Légumes grillés', de: 'Gegrilltes Gemüse', zh: '烤蔬菜', ja: 'グリル野菜' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 513, name: { it: 'Patate al forno', en: 'Oven-roasted potatoes', es: 'Patatas al horno', fr: 'Pommes de terre rôties', de: 'Ofenkartoffeln', zh: '烤土豆', ja: 'オーブンローストポテト' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 514, name: { it: 'Insalata mista', en: 'Mixed salad', es: 'Ensalada mixta', fr: 'Salade mixte', de: 'Gemischter Salat', zh: '什锦沙拉', ja: 'ミックスサラダ' }, price: 6, allergens: ['vegetarian'], image: '' },
+    { id: 515, name: { it: 'Verdura del giorno ripassata', en: 'Sautéed vegetable of the day', es: 'Verdura del día salteada', fr: 'Légume du jour sauté', de: 'Sautiertes Tagesgemüse', zh: '炒时令蔬菜', ja: '本日の野菜のソテー' }, price: 6, allergens: ['vegetarian'], image: '' }
   ],
   dessert: [
     { id: 516, name: { it: 'Crostatina crema al mascarpone e frutti di bosco o cacao', en: 'Mascarpone cream tart with berries or chocolate', es: 'Tartaleta de crema de mascarpone con frutos del bosque o cacao', fr: 'Tartelette à la crème de mascarpone avec fruits des bois ou cacao', de: 'Mascarpone-Creme-Törtchen mit Beeren oder Kakao', zh: '马斯卡彭奶油挞配浆果或可可', ja: 'マスカルポーネクリームタルト ベリーまたはカカオ添え' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], image: '' },
@@ -861,15 +834,15 @@ function AddModal({ lang, onSave, onClose }) {
     if (!formData.name.it.trim()) return alert('Inserisci prima il nome in italiano.');
     setIsTranslating(true);
     try {
-      const results = await Promise.all(['en','es','fr','de','zh','ja'].map(async tl => {
-        const apiLang = tl === 'zh' ? 'zh-CN' : tl;
-        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(formData.name.it) + '&langpair=it|' + apiLang;
-        const res = await fetchWithTimeout(url, {}, 8000);
-        const data = await res.json();
-        return [tl, sanitizeText(data.responseData?.translatedText || formData.name.it)];
-      }));
+      const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: [{ text: formData.name.it, id: 'name' }] })
+      }, 15000);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       const newName = { ...formData.name };
-      results.forEach(([tl, txt]) => { newName[tl] = txt; });
+      Object.entries(data.results.name).forEach(([tl, txt]) => { newName[tl] = sanitizeText(txt); });
       setFormData({ ...formData, name: newName });
       setTranslated(true);
     } catch(err) {
@@ -969,27 +942,24 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
     if (!items[idx].name.it.trim()) return alert('Inserisci prima il nome in italiano.');
     setTranslatingIdx(idx);
     try {
-      const langs = ['en','es','fr','de','zh','ja'];
-      const nameResults = await Promise.all(langs.map(async tl => {
-        const apiLang = tl === 'zh' ? 'zh-CN' : tl;
-        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].name.it) + '&langpair=it|' + apiLang;
-        const res = await fetchWithTimeout(url, {}, 8000);
-        const data = await res.json();
-        return [tl, sanitizeText(data.responseData?.translatedText || items[idx].name.it)];
-      }));
-      let descResults = [];
+      const textsToTranslate = [{ text: items[idx].name.it, id: 'name' }];
       if (items[idx].description.it.trim()) {
-        descResults = await Promise.all(langs.map(async tl => {
-          const apiLang = tl === 'zh' ? 'zh-CN' : tl;
-          const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(items[idx].description.it) + '&langpair=it|' + apiLang;
-          const res = await fetchWithTimeout(url, {}, 8000);
-          const data = await res.json();
-          return [tl, sanitizeText(data.responseData?.translatedText || items[idx].description.it, 500)];
-        }));
+        textsToTranslate.push({ text: items[idx].description.it, id: 'description' });
       }
+      const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: textsToTranslate })
+      }, 20000);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       const newItems = [...items];
-      nameResults.forEach(([tl, txt]) => { newItems[idx].name[tl] = txt; });
-      descResults.forEach(([tl, txt]) => { newItems[idx].description[tl] = txt; });
+      if (data.results.name) {
+        Object.entries(data.results.name).forEach(([tl, txt]) => { newItems[idx].name[tl] = sanitizeText(txt); });
+      }
+      if (data.results.description) {
+        Object.entries(data.results.description).forEach(([tl, txt]) => { newItems[idx].description[tl] = sanitizeText(txt, 500); });
+      }
       setItems(newItems);
       setTranslatedItems(prev => [...new Set([...prev, idx])]);
     } catch(err) {
