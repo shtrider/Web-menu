@@ -82,7 +82,7 @@ const supabase = {
     return data[0] || null;
   },
   
-  async saveMenu(menu, specials, pinHash) {
+  async saveMenu(menu, specials, pinHash, unavailable_items, menu_override) {
     const response = await fetchWithTimeout(
       `${SUPABASE_URL}/functions/v1/save-menu`,
       {
@@ -91,7 +91,27 @@ const supabase = {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${SUPABASE_KEY}`
         },
-        body: JSON.stringify({ menu, specials, pinHash })
+        body: JSON.stringify({ menu, specials, pinHash, unavailable_items, menu_override })
+      },
+      15000
+    );
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+
+  async saveState(pinHash, unavailable_items, menu_override) {
+    const response = await fetchWithTimeout(
+      `${SUPABASE_URL}/functions/v1/save-menu`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({ action: 'save_state', pinHash, unavailable_items, menu_override })
       },
       15000
     );
@@ -308,9 +328,7 @@ function App() {
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPinHash, setAdminPinHash] = useState(null);
-  const [unavailableItems, setUnavailableItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('unavailableItems') || '[]'); } catch { return []; }
-  });
+  const [unavailableItems, setUnavailableItems] = useState([]);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -326,9 +344,7 @@ function App() {
   const MAX_PIN_ATTEMPTS = 5;
   const LOCKOUT_SECONDS = 60;
 
-  const [menuOverride, setMenuOverride] = useState(() => {
-    return localStorage.getItem('menuOverride') || null;
-  });
+  const [menuOverride, setMenuOverride] = useState(null);
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
@@ -336,35 +352,38 @@ function App() {
 
   const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
 
+  const buildMenu = (data, useSunday) => {
+    const beverages = {
+      softdrinks: (data && data.softdrinks) || defaultMenu.softdrinks,
+      wine: (data && data.wine) || defaultMenu.wine,
+      beer: (data && data.beer) || defaultMenu.beer,
+      cocktails: (data && data.cocktails) || defaultMenu.cocktails,
+      spirits: (data && data.spirits) || defaultMenu.spirits
+    };
+    return useSunday ? { ...sundayMenu, ...beverages } : (data || defaultMenu);
+  };
+
   useEffect(() => {
     async function loadMenu() {
       try {
         const data = await supabase.getMenu();
-        if (data && data.menu && Object.keys(data.menu).length > 0) {
-          let loadedMenu = data.menu;
-          if (isSunday) {
-            // On Sunday: use sundayMenu for food, keep beverages from DB
-            loadedMenu = {
-              ...sundayMenu,
-              softdrinks: data.menu.softdrinks || defaultMenu.softdrinks,
-              wine: data.menu.wine || defaultMenu.wine,
-              beer: data.menu.beer || defaultMenu.beer,
-              cocktails: data.menu.cocktails || defaultMenu.cocktails,
-              spirits: data.menu.spirits || defaultMenu.spirits
-            };
-          }
-          setMenu(loadedMenu);
-          setSpecials(data.specials || defaultSpecials);
-        } else {
-          if (isSunday) {
-            setMenu({ ...sundayMenu, softdrinks: defaultMenu.softdrinks, wine: defaultMenu.wine, beer: defaultMenu.beer, cocktails: defaultMenu.cocktails, spirits: defaultMenu.spirits });
+        if (data) {
+          // Load operational state from DB
+          if (Array.isArray(data.unavailable_items)) setUnavailableItems(data.unavailable_items);
+          if (data.menu_override) setMenuOverride(data.menu_override);
+
+          const override = data.menu_override || null;
+          const useSunday = override === 'sunday' ? true : override === 'default' ? false : new Date().getDay() === 0;
+
+          if (data.menu && Object.keys(data.menu).length > 0) {
+            setMenu(buildMenu(data.menu, useSunday));
+            setSpecials(data.specials || defaultSpecials);
+          } else {
+            setMenu(buildMenu(null, useSunday));
           }
         }
       } catch (error) {
         console.error('Error loading menu:', error);
-        if (isSunday) {
-          setMenu({ ...sundayMenu, softdrinks: defaultMenu.softdrinks, wine: defaultMenu.wine, beer: defaultMenu.beer, cocktails: defaultMenu.cocktails, spirits: defaultMenu.spirits });
-        }
       } finally {
         setIsLoading(false);
         document.getElementById('loading').style.display = 'none';
@@ -377,12 +396,12 @@ function App() {
       if (el) el.style.display = 'none';
     }, 12000);
     return () => clearTimeout(safetyTimer);
-  }, [menuOverride]);
+  }, []);
 
   const saveToSupabase = async (newMenu, newSpecials) => {
     showSyncStatus('saving', '💾 Salvando...');
     try {
-      await supabase.saveMenu(newMenu, newSpecials, adminPinHash);
+      await supabase.saveMenu(newMenu, newSpecials, adminPinHash, unavailableItems, menuOverride);
       showSyncStatus('saved', '✅ Salvato!');
     } catch (error) {
       console.error('Error saving:', error);
@@ -475,7 +494,7 @@ function App() {
       ? unavailableItems.filter(id => id !== itemId)
       : [...unavailableItems, itemId];
     setUnavailableItems(updated);
-    localStorage.setItem('unavailableItems', JSON.stringify(updated));
+    supabase.saveState(adminPinHash, updated, menuOverride).catch(err => console.error('Error saving state:', err));
   };
 
   useEffect(() => {
@@ -559,14 +578,14 @@ function App() {
           onClick: () => {
             const next = isSunday ? 'default' : 'sunday';
             setMenuOverride(next);
-            localStorage.setItem('menuOverride', next);
+            supabase.saveState(adminPinHash, unavailableItems, next).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
           },
           style: { background: isSunday ? '#d4842a' : '#6b46c1', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }
         }, isSunday ? '🔄 Menu Normale' : '🔄 Menu Domenica'),
         isAdmin && menuOverride !== null && e('button', {
           onClick: () => {
             setMenuOverride(null);
-            localStorage.removeItem('menuOverride');
+            supabase.saveState(adminPinHash, unavailableItems, null).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
           },
           style: { background: '#718096', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px' }
         }, '✖ Auto'),

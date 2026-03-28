@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { menu, specials, pinHash } = await req.json();
+    const { menu, specials, pinHash, unavailable_items, menu_override, action } = await req.json();
 
     // Verify PIN hash
     if (!pinHash || pinHash !== PIN_HASH) {
@@ -33,23 +33,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Validate payload
-    if (!menu || typeof menu !== "object") {
-      return new Response(JSON.stringify({ error: "Invalid menu data" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // Use service_role key to bypass RLS
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const payload = {
-      menu,
-      specials: specials || {},
+    let payload: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
+
+    if (action === "save_state") {
+      // Lightweight save: only operational state
+      if (unavailable_items !== undefined) payload.unavailable_items = unavailable_items;
+      if (menu_override !== undefined) payload.menu_override = menu_override;
+    } else {
+      // Full menu save
+      if (!menu || typeof menu !== "object") {
+        return new Response(JSON.stringify({ error: "Invalid menu data" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      payload.menu = menu;
+      payload.specials = specials || {};
+      if (unavailable_items !== undefined) payload.unavailable_items = unavailable_items;
+      if (menu_override !== undefined) payload.menu_override = menu_override;
+    }
 
     // Try PATCH first (update existing row)
     const patchRes = await fetch(
