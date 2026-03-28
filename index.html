@@ -351,9 +351,11 @@ function App() {
       wine: (data && data.wine) || defaultMenu.wine,
       beer: (data && data.beer) || defaultMenu.beer,
       cocktails: (data && data.cocktails) || defaultMenu.cocktails,
-      spirits: (data && data.spirits) || defaultMenu.spirits
+      spirits: (data && data.spirits) || defaultMenu.spirits,
+      _subcategories: (data && data._subcategories) || {}
     };
-    return useSunday ? { ...sundayMenu, ...beverages } : (data || defaultMenu);
+    const kitchen = useSunday ? sundayMenu : defaultMenu;
+    return { ...kitchen, ...beverages };
   };
 
   useEffect(() => {
