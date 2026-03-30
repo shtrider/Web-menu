@@ -23,6 +23,8 @@
     .sync-indicator.saving { display: block; background: #ffd700; color: #333; }
     .sync-indicator.saved { display: block; background: #38a169; color: #fff; }
     .sync-indicator.error { display: block; background: #e53e3e; color: #fff; }
+    .cat-pills::-webkit-scrollbar { display: none; }
+    .cat-pills { scrollbar-width: none; -ms-overflow-style: none; }
   </style>
 </head>
 <body>
@@ -288,8 +290,9 @@ function showSyncStatus(status, message) {
 }
 
 function App() {
-  const [menu, setMenu] = useState(defaultMenu);
-  const [specials, setSpecials] = useState(defaultSpecials);
+  const [menuData, setMenuData] = useState({ default: defaultMenu, sunday: sundayMenu });
+  const [fullSpecials, setFullSpecials] = useState({ default: defaultSpecials, sunday: defaultSpecials });
+  const [fullUnavailable, setFullUnavailable] = useState({ default: [], sunday: [] });
   const [showSpecials, setShowSpecials] = useState(true);
   const [lang, setLang] = useState(() => {
     const bl = (navigator.language || '').split('-')[0].toLowerCase();
@@ -299,7 +302,6 @@ function App() {
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPinHash, setAdminPinHash] = useState(null);
-  const [unavailableItems, setUnavailableItems] = useState([]);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pin, setPin] = useState('');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -317,43 +319,68 @@ function App() {
 
   const [menuOverride, setMenuOverride] = useState(null);
   const [addSubcategoryDefault, setAddSubcategoryDefault] = useState('');
+  const [scrolled, setScrolled] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
   const isSunday = menuOverride === 'sunday' ? true : menuOverride === 'default' ? false : new Date().getDay() === 0;
+  const activeMode = isSunday ? 'sunday' : 'default';
+  const menu = menuData[activeMode] || defaultMenu;
+  const specials = fullSpecials[activeMode] || defaultSpecials;
+  const unavailableItems = fullUnavailable[activeMode] || [];
 
   const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
 
-  const fixItemIds = (menuData) => {
+  const fixItemIds = (dualMenu) => {
     let maxId = 0;
-    const cats = Object.entries(menuData).filter(([k]) => k !== '_subcategories');
-    cats.forEach(([, items]) => { if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; }); });
-    let needsSave = false;
-    const fixed = { ...menuData };
-    cats.forEach(([cat, items]) => {
-      if (!Array.isArray(items)) return;
-      fixed[cat] = items.map(i => {
-        if (typeof i.id !== 'number' || isNaN(i.id) || i.id === null || i.id === undefined) {
-          needsSave = true;
-          return { ...i, id: ++maxId };
-        }
-        return i;
+    ['default', 'sunday'].forEach(mode => {
+      if (!dualMenu[mode]) return;
+      Object.entries(dualMenu[mode]).filter(([k]) => k !== '_subcategories').forEach(([, items]) => {
+        if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; });
       });
     });
-    return { menu: fixed, needsSave };
+    const fixed = {};
+    ['default', 'sunday'].forEach(mode => {
+      if (!dualMenu[mode]) return;
+      fixed[mode] = { ...dualMenu[mode] };
+      Object.entries(dualMenu[mode]).filter(([k]) => k !== '_subcategories').forEach(([cat, items]) => {
+        if (!Array.isArray(items)) return;
+        fixed[mode][cat] = items.map(i => {
+          if (typeof i.id !== 'number' || isNaN(i.id)) return { ...i, id: ++maxId };
+          return i;
+        });
+      });
+    });
+    return fixed;
   };
 
-  const buildMenu = (data, useSunday) => {
-    const beverages = {
-      softdrinks: (data && data.softdrinks) || defaultMenu.softdrinks,
-      wine: (data && data.wine) || defaultMenu.wine,
-      beer: (data && data.beer) || defaultMenu.beer,
-      cocktails: (data && data.cocktails) || defaultMenu.cocktails,
-      spirits: (data && data.spirits) || defaultMenu.spirits,
-      _subcategories: (data && data._subcategories) || {}
-    };
-    const kitchen = useSunday ? sundayMenu : defaultMenu;
-    return { ...kitchen, ...beverages };
+  const migrateMenuData = (data) => {
+    const rawMenu = data.menu || {};
+    let dual;
+    if (rawMenu.default && typeof rawMenu.default === 'object' && (rawMenu.default.appetizers || rawMenu.default.softdrinks)) {
+      dual = rawMenu;
+    } else {
+      const barItems = {
+        softdrinks: rawMenu.softdrinks || defaultMenu.softdrinks,
+        wine: rawMenu.wine || defaultMenu.wine,
+        beer: rawMenu.beer || defaultMenu.beer,
+        cocktails: rawMenu.cocktails || defaultMenu.cocktails,
+        spirits: rawMenu.spirits || defaultMenu.spirits,
+        _subcategories: rawMenu._subcategories || {}
+      };
+      dual = {
+        default: { ...defaultMenu, ...barItems },
+        sunday: { ...sundayMenu, ...barItems }
+      };
+    }
+    let sp = data.specials;
+    if (Array.isArray(sp)) sp = { default: sp, sunday: sp };
+    else if (!sp || typeof sp !== 'object' || !sp.default) sp = { default: defaultSpecials, sunday: defaultSpecials };
+    let ua = data.unavailable_items;
+    if (Array.isArray(ua)) ua = { default: ua, sunday: [] };
+    else if (!ua || typeof ua !== 'object' || !ua.default) ua = { default: [], sunday: [] };
+    return { menu: dual, specials: sp, unavailable_items: ua };
   };
 
   useEffect(() => {
@@ -361,21 +388,12 @@ function App() {
       try {
         const data = await supabase.getMenu();
         if (data) {
-          // Load operational state from DB
-          if (Array.isArray(data.unavailable_items)) setUnavailableItems(data.unavailable_items);
           if (data.menu_override) setMenuOverride(data.menu_override);
-
-          const override = data.menu_override || null;
-          const useSunday = override === 'sunday' ? true : override === 'default' ? false : new Date().getDay() === 0;
-
-          if (data.menu && Object.keys(data.menu).length > 0) {
-            const built = buildMenu(data.menu, useSunday);
-            const { menu: fixedMenu } = fixItemIds(built);
-            setMenu(fixedMenu);
-            setSpecials(data.specials || defaultSpecials);
-          } else {
-            setMenu(buildMenu(null, useSunday));
-          }
+          const migrated = migrateMenuData(data);
+          const fixed = fixItemIds(migrated.menu);
+          setMenuData(fixed);
+          setFullSpecials(migrated.specials);
+          setFullUnavailable(migrated.unavailable_items);
         }
       } catch (error) {
         console.error('Error loading menu:', error);
@@ -393,10 +411,16 @@ function App() {
     return () => clearTimeout(safetyTimer);
   }, []);
 
-  const saveToSupabase = async (newMenu, newSpecials) => {
+  const updateMode = (newModeMenu) => {
+    const newData = { ...menuData, [activeMode]: newModeMenu };
+    setMenuData(newData);
+    return newData;
+  };
+
+  const saveToSupabase = async (newMenuData, newFullSpecials) => {
     showSyncStatus('saving', '💾 Salvando...');
     try {
-      await supabase.saveMenu(newMenu, newSpecials, adminPinHash, unavailableItems, menuOverride);
+      await supabase.saveMenu(newMenuData, newFullSpecials, adminPinHash, fullUnavailable, menuOverride);
       showSyncStatus('saved', '✅ Salvato!');
     } catch (error) {
       console.error('Error saving:', error);
@@ -450,32 +474,28 @@ function App() {
 
   const deleteItem = (cat, id) => {
     if (confirm('Eliminare questo elemento?')) {
-      const newMenu = { ...menu, [cat]: menu[cat].filter(i => i.id !== id) };
-      setMenu(newMenu);
-      saveToSupabase(newMenu, specials);
+      const newModeMenu = { ...menu, [cat]: menu[cat].filter(i => i.id !== id) };
+      const newData = updateMode(newModeMenu);
+      saveToSupabase(newData, fullSpecials);
     }
   };
 
   const saveEditItem = (item) => {
-    const newMenu = {
-      ...menu,
-      [subCategory]: menu[subCategory].map(i => i.id === item.id ? item : i)
-    };
-    setMenu(newMenu);
-    saveToSupabase(newMenu, specials);
+    const newModeMenu = { ...menu, [subCategory]: menu[subCategory].map(i => i.id === item.id ? item : i) };
+    const newData = updateMode(newModeMenu);
+    saveToSupabase(newData, fullSpecials);
     setShowEditModal(false);
     setEditItem(null);
   };
 
   const addNewItem = (item) => {
-    const allIds = Object.entries(menu).filter(([k]) => k !== '_subcategories').flatMap(([, v]) => Array.isArray(v) ? v : []).map(i => typeof i.id === 'number' && !isNaN(i.id) ? i.id : 0);
+    const allIds = ['default', 'sunday'].flatMap(mode =>
+      Object.entries(menuData[mode] || {}).filter(([k]) => k !== '_subcategories').flatMap(([, v]) => Array.isArray(v) ? v : []).map(i => typeof i.id === 'number' && !isNaN(i.id) ? i.id : 0)
+    );
     const newId = (allIds.length > 0 ? Math.max(...allIds) : 0) + 1;
-    const newMenu = {
-      ...menu,
-      [subCategory]: [...menu[subCategory], { ...item, id: newId }]
-    };
-    setMenu(newMenu);
-    saveToSupabase(newMenu, specials);
+    const newModeMenu = { ...menu, [subCategory]: [...menu[subCategory], { ...item, id: newId }] };
+    const newData = updateMode(newModeMenu);
+    saveToSupabase(newData, fullSpecials);
     setShowAddModal(false);
   };
 
@@ -484,9 +504,8 @@ function App() {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= items.length) return;
     [items[index], items[newIndex]] = [items[newIndex], items[index]];
-    const newMenu = { ...menu, [cat]: items };
-    setMenu(newMenu);
-    saveToSupabase(newMenu, specials);
+    const newData = updateMode({ ...menu, [cat]: items });
+    saveToSupabase(newData, fullSpecials);
   };
 
   const addSubcategory = async (name) => {
@@ -506,23 +525,22 @@ function App() {
       }
     } catch (err) { console.error('Translation error:', err); }
     subs[subCategory] = [...(subs[subCategory] || []), subObj];
-    const newMenu = { ...menu, _subcategories: subs };
-    setMenu(newMenu);
-    saveToSupabase(newMenu, specials);
+    const newData = updateMode({ ...menu, _subcategories: subs });
+    saveToSupabase(newData, fullSpecials);
   };
 
   const deleteSubcategory = (itName) => {
     if (!confirm(lang === 'it' ? 'Eliminare la sottocategoria "' + itName + '"?' : 'Delete subcategory "' + itName + '"?')) return;
     const subs = { ...(menu._subcategories || {}) };
     subs[subCategory] = (subs[subCategory] || []).filter(s => (typeof s === 'string' ? s : s.it) !== itName);
-    const newMenu = { ...menu, _subcategories: subs };
-    setMenu(newMenu);
-    saveToSupabase(newMenu, specials);
+    const newData = updateMode({ ...menu, _subcategories: subs });
+    saveToSupabase(newData, fullSpecials);
   };
 
-  const saveSpecials = (newSpecials) => {
-    setSpecials(newSpecials);
-    saveToSupabase(menu, newSpecials);
+  const saveSpecials = (newModeSpecials) => {
+    const newFullSpecials = { ...fullSpecials, [activeMode]: newModeSpecials };
+    setFullSpecials(newFullSpecials);
+    saveToSupabase(menuData, newFullSpecials);
     setShowEditSpecials(false);
   };
 
@@ -530,8 +548,9 @@ function App() {
     const updated = unavailableItems.includes(itemId)
       ? unavailableItems.filter(id => id !== itemId)
       : [...unavailableItems, itemId];
-    setUnavailableItems(updated);
-    supabase.saveState(adminPinHash, updated, menuOverride).catch(err => console.error('Error saving state:', err));
+    const newFullUnavailable = { ...fullUnavailable, [activeMode]: updated };
+    setFullUnavailable(newFullUnavailable);
+    supabase.saveState(adminPinHash, newFullUnavailable, menuOverride).catch(err => console.error('Error saving state:', err));
   };
 
   useEffect(() => {
@@ -541,6 +560,12 @@ function App() {
       setSubCategory('softdrinks');
     }
   }, [mainTab]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const currentItems = menu[subCategory] || [];
 
@@ -611,7 +636,7 @@ function App() {
         e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC')
       ),
       _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
-      lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
+      barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
       e('div', { style: { flex: 1, opacity: isUnavailable && !isAdmin ? 0.4 : 1 }},
         e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
           e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
@@ -624,6 +649,16 @@ function App() {
         ),
         item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
           item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
+        ),
+        !_isWine && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
+          e('button', {
+            onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
+            style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
+          }, expandedItems[item.id] ? '\u25B2' : '\u25BC', ' ', expandedItems[item.id] ? (lang === 'it' ? 'Nascondi' : 'Hide') : (lang === 'it' ? 'Dettagli' : lang === 'es' ? 'Detalles' : lang === 'fr' ? 'Détails' : lang === 'de' ? 'Details' : lang === 'zh' ? '\u8BE6\u60C5' : lang === 'ja' ? '\u8A73\u7D30' : 'Details')),
+          expandedItems[item.id] && e('div', { style: { marginTop: '8px', padding: '12px', background: theme.catBg, borderRadius: '8px', border: '1px solid ' + theme.cardBorder }},
+            e('p', { style: { margin: 0, fontSize: '14px', color: '#4a5568', lineHeight: '1.6' }}, item.description[lang] || item.description.it),
+            lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '100%', maxWidth: '300px', height: 'auto', borderRadius: '8px', marginTop: '10px', display: 'block' }, referrerPolicy: 'no-referrer' })
+          )
         ),
         isAdmin && e('div', { style: { display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }},
           e('button', {
@@ -650,77 +685,81 @@ function App() {
     showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => { setShowAddModal(false); setAddSubcategoryDefault(''); }, isBarCat: barCats.includes(subCategory), defaultSubcategory: addSubcategoryDefault, currentCategory: subCategory, existingSubcats: (menu._subcategories && menu._subcategories[subCategory]) || [] }),
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
-    e('header', { style: { background: theme.header, padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }},
+    e('header', { style: { background: theme.header, padding: scrolled ? '0px' : '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', transition: 'padding 0.25s ease', overflow: 'hidden', maxHeight: scrolled ? '0px' : '200px' }},
       e('img', { src: isSunday ? 'sunday_logo.png' : 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }}),
-      e('div', { style: { display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }},
-        e('div', { style: { position: 'relative' }},
-          e('button', { 
-            onClick: () => setShowLangMenu(!showLangMenu),
-            style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }
-          }, LANGUAGES.find(l => l.code === lang)?.flag, ' ', LANGUAGES.find(l => l.code === lang)?.name),
-          showLangMenu && e('div', { 
-            style: { position: 'absolute', top: '100%', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }
-          },
-            LANGUAGES.map(l => e('button', {
-              key: l.code,
-              onClick: () => { setLang(l.code); setShowLangMenu(false); },
-              style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? theme.accent : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
-            }, l.flag, ' ', l.name))
-          )
-        ),
+      isAdmin && e('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }},
         e('button', {
-          onClick: () => setShowSpecials(true),
-          style: { background: '#1a365d', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px' }
-        }, '📋 ', lang === 'it' ? 'Speciali' : lang === 'es' ? 'Especiales' : lang === 'fr' ? 'Spécialités' : lang === 'de' ? 'Tagesgerichte' : lang === 'zh' ? '今日特色' : lang === 'ja' ? '本日のスペシャル' : 'Specials'),
-        isAdmin && e('button', {
           onClick: () => setShowEditSpecials(true),
           style: { background: '#2d3748', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '12px' }
         }, '✏️'),
-        isAdmin && e('button', {
+        e('button', {
           onClick: () => {
             const next = isSunday ? 'default' : 'sunday';
             setMenuOverride(next);
-            supabase.saveState(adminPinHash, unavailableItems, next).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
+            supabase.saveState(adminPinHash, fullUnavailable, next).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
           },
           style: { background: isSunday ? '#d4842a' : '#6b46c1', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }
         }, isSunday ? '🔄 Menu Borgo' : '🔄 Menu Hotel'),
-        isAdmin && menuOverride !== null && e('button', {
+        menuOverride !== null && e('button', {
           onClick: () => {
             setMenuOverride(null);
-            supabase.saveState(adminPinHash, unavailableItems, null).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
+            supabase.saveState(adminPinHash, fullUnavailable, null).then(() => location.reload()).catch(err => console.error('Error saving state:', err));
           },
           style: { background: '#718096', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px' }
         }, '✖ Auto'),
-        isAdmin && e('button', {
+        e('button', {
           onClick: () => setIsAdmin(false),
           style: { background: '#c53030', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '14px' }
         }, '🔓 Esci')
       )
     ),
-    
-    e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '0 24px', overflowX: 'auto' }},
-      e('div', { style: { display: 'flex', gap: '0' }},
-        e('button', {
-          onClick: () => setMainTab('kitchen'),
-          style: { padding: '16px 32px', border: 'none', background: mainTab === 'kitchen' ? theme.tabActive : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
-        }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
-        e('button', {
-          onClick: () => setMainTab('bar'),
-          style: { padding: '16px 32px', border: 'none', background: mainTab === 'bar' ? theme.tabActive : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '16px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
-        }, '🍸 Bar')
+
+    e('div', { style: { position: 'sticky', top: 0, zIndex: 50 }},
+      e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }},
+        e('div', { style: { display: 'flex', gap: '0' }},
+          e('button', {
+            onClick: () => setMainTab('kitchen'),
+            style: { padding: '12px 16px', border: 'none', background: mainTab === 'kitchen' ? theme.tabActive : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          }, '🍽️ ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
+          e('button', {
+            onClick: () => setMainTab('bar'),
+            style: { padding: '12px 16px', border: 'none', background: mainTab === 'bar' ? theme.tabActive : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          }, '🍸 Bar')
+        ),
+        e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
+          e('button', {
+            onClick: () => setShowSpecials(true),
+            style: { background: theme.tabActive, color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }
+          }, '📋 ', lang === 'it' ? 'Speciali' : lang === 'es' ? 'Especiales' : lang === 'fr' ? 'Spécialités' : lang === 'de' ? 'Tagesgerichte' : lang === 'zh' ? '特色' : lang === 'ja' ? 'スペシャル' : 'Specials'),
+          e('div', { style: { position: 'relative' }},
+            e('button', {
+              onClick: () => setShowLangMenu(!showLangMenu),
+              style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }
+            }, LANGUAGES.find(l => l.code === lang)?.flag),
+            showLangMenu && e('div', {
+              style: { position: 'absolute', top: '100%', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }
+            },
+              LANGUAGES.map(l => e('button', {
+                key: l.code,
+                onClick: () => { setLang(l.code); setShowLangMenu(false); },
+                style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? theme.accent : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
+              }, l.flag, ' ', l.name))
+            )
+          )
+        )
+      ),
+
+      e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '10px 24px', background: theme.catBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
+        (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
+          e('button', {
+            key: cat,
+            onClick: () => setSubCategory(cat),
+            style: { padding: '10px 20px', border: subCategory === cat ? '2px solid ' + theme.catBorder : '1px solid ' + theme.navBorder, background: subCategory === cat ? '#fff' : '#fff', color: subCategory === cat ? theme.accent : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400', whiteSpace: 'nowrap', flexShrink: 0 }
+          }, CATEGORY_NAMES[cat]?.[lang] || cat)
+        )
       )
     ),
 
-    e('div', { style: { display: 'flex', gap: '8px', padding: '16px 24px', background: theme.catBg, flexWrap: 'wrap' }},
-      (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
-        e('button', {
-          key: cat,
-          onClick: () => setSubCategory(cat),
-          style: { padding: '10px 20px', border: subCategory === cat ? '2px solid ' + theme.catBorder : '1px solid ' + theme.navBorder, background: subCategory === cat ? '#fff' : '#fff', color: subCategory === cat ? theme.accent : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400' }
-        }, CATEGORY_NAMES[cat]?.[lang] || cat)
-      )
-    ),
-    
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
         e('h2', { style: { margin: 0, color: theme.accent, fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
@@ -867,7 +906,7 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
 }
 
 function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, existingSubcats }) {
-  const [formData, setFormData] = useState({ ...item });
+  const [formData, setFormData] = useState({ ...item, description: item.description || { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' } });
   
   const toggleAllergen = (a) => {
     const current = formData.allergens || [];
@@ -914,6 +953,21 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
             onChange: ev => setFormData({ ...formData, name: { ...formData.name, [l.code]: ev.target.value }}),
             style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
           })
+        )
+      ),
+      !isBarCat && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }},
+        e('label', { style: { display: 'block', fontSize: '13px', color: '#2d3748', fontWeight: '600', marginBottom: '10px' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+        LANGUAGES.map(l =>
+          e('div', { key: 'desc-' + l.code, style: { marginBottom: '10px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, l.flag, ' ', l.name),
+            e('textarea', {
+              value: (formData.description && formData.description[l.code]) || '',
+              onChange: ev => setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}),
+              placeholder: l.code === 'it' ? 'Descrizione del piatto...' : 'Dish description...',
+              rows: 2,
+              style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical' }
+            })
+          )
         )
       ),
       e('div', { style: { marginBottom: '16px' }},
@@ -984,7 +1038,7 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
 }
 
 function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, currentCategory, existingSubcats }) {
-  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', subcategory: defaultSubcategory || '', regione: '', cantina: '', volume: '', serving: '' });
+  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, description: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', subcategory: defaultSubcategory || '', regione: '', cantina: '', volume: '', serving: '' });
   const [isTranslating, setIsTranslating] = useState(false);
   const [translated, setTranslated] = useState(false);
 
@@ -1075,6 +1129,21 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
             onChange: ev => setFormData({ ...formData, name: { ...formData.name, [l.code]: ev.target.value }}),
             style: { width: '100%', padding: '10px', border: translated ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', background: translated ? '#ebf8ff' : '#fff' }
           })
+        )
+      ),
+      !isBarCat && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }},
+        e('label', { style: { display: 'block', fontSize: '13px', color: '#2d3748', fontWeight: '600', marginBottom: '10px' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+        LANGUAGES.map(l =>
+          e('div', { key: 'desc-' + l.code, style: { marginBottom: '10px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, l.flag, ' ', l.name),
+            e('textarea', {
+              value: (formData.description && formData.description[l.code]) || '',
+              onChange: ev => setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}),
+              placeholder: l.code === 'it' ? 'Descrizione del piatto...' : 'Dish description...',
+              rows: 2,
+              style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical' }
+            })
+          )
         )
       ),
       e('div', { style: { marginBottom: '16px' }},
