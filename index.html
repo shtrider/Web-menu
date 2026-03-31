@@ -907,7 +907,31 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
 
 function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, existingSubcats }) {
   const [formData, setFormData] = useState({ ...item, description: item.description || { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' } });
-  
+  const [isTranslatingDesc, setIsTranslatingDesc] = useState(false);
+  const [descTranslated, setDescTranslated] = useState(false);
+
+  const autoTranslateDesc = async () => {
+    if (!formData.description || !formData.description.it || !formData.description.it.trim()) return alert('Inserisci prima la descrizione in italiano.');
+    setIsTranslatingDesc(true);
+    try {
+      const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: [{ text: formData.description.it, id: 'description' }], context: 'food_menu' })
+      }, 25000);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const newDesc = { ...formData.description };
+      Object.entries(data.results.description).forEach(([tl, txt]) => { newDesc[tl] = sanitizeText(txt, 500); });
+      setFormData({ ...formData, description: newDesc });
+      setDescTranslated(true);
+    } catch(err) {
+      alert('Errore nella traduzione automatica. Controlla la connessione.');
+    } finally {
+      setIsTranslatingDesc(false);
+    }
+  };
+
   const toggleAllergen = (a) => {
     const current = formData.allergens || [];
     setFormData({ ...formData, allergens: current.includes(a) ? current.filter(x => x !== a) : [...current, a] });
@@ -956,16 +980,27 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
         )
       ),
       !isBarCat && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }},
-        e('label', { style: { display: 'block', fontSize: '13px', color: '#2d3748', fontWeight: '600', marginBottom: '10px' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+        e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }},
+          e('label', { style: { fontSize: '13px', color: '#2d3748', fontWeight: '600' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+          e('button', {
+            type: 'button',
+            onClick: autoTranslateDesc,
+            disabled: isTranslatingDesc,
+            style: { padding: '6px 12px', background: '#ca4d4f', color: '#fff', border: 'none', borderRadius: '6px', cursor: isTranslatingDesc ? 'wait' : 'pointer', fontSize: '12px', whiteSpace: 'nowrap', opacity: isTranslatingDesc ? 0.7 : 1 }
+          }, isTranslatingDesc ? '⏳ Traduzione...' : '🌐 Traduci descrizione')
+        ),
+        descTranslated && e('div', { style: { margin: '0 0 10px', padding: '8px 12px', background: '#fffbea', border: '1px solid #f6e05e', borderRadius: '6px', fontSize: '12px', color: '#744210' }},
+          '✅ Traduzioni generate — controlla e correggi se necessario.'
+        ),
         LANGUAGES.map(l =>
           e('div', { key: 'desc-' + l.code, style: { marginBottom: '10px' }},
             e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, l.flag, ' ', l.name),
             e('textarea', {
               value: (formData.description && formData.description[l.code]) || '',
-              onChange: ev => setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}),
+              onChange: ev => { setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}); if (l.code === 'it') setDescTranslated(false); },
               placeholder: l.code === 'it' ? 'Descrizione del piatto...' : 'Dish description...',
               rows: 2,
-              style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical' }
+              style: { width: '100%', padding: '8px', border: descTranslated && l.code !== 'it' ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical', background: descTranslated && l.code !== 'it' ? '#ebf8ff' : '#fff' }
             })
           )
         )
@@ -983,7 +1018,7 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
       e('div', { style: { marginBottom: '16px' }},
         e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '8px' }}, 'Allergeni'),
         e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' }},
-          Object.entries(ALLERGENS).map(([key, val]) => 
+          Object.entries(ALLERGENS).map(([key, val]) =>
             e('button', {
               key,
               type: 'button',
@@ -1041,6 +1076,8 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
   const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, description: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', subcategory: defaultSubcategory || '', regione: '', cantina: '', volume: '', serving: '' });
   const [isTranslating, setIsTranslating] = useState(false);
   const [translated, setTranslated] = useState(false);
+  const [isTranslatingDesc, setIsTranslatingDesc] = useState(false);
+  const [descTranslated, setDescTranslated] = useState(false);
 
   const toggleAllergen = (a) => {
     const current = formData.allergens || [];
@@ -1066,6 +1103,28 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
       alert('Errore nella traduzione automatica. Controlla la connessione.');
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const autoTranslateDesc = async () => {
+    if (!formData.description || !formData.description.it || !formData.description.it.trim()) return alert('Inserisci prima la descrizione in italiano.');
+    setIsTranslatingDesc(true);
+    try {
+      const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: [{ text: formData.description.it, id: 'description' }], context: 'food_menu' })
+      }, 25000);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const newDesc = { ...formData.description };
+      Object.entries(data.results.description).forEach(([tl, txt]) => { newDesc[tl] = sanitizeText(txt, 500); });
+      setFormData({ ...formData, description: newDesc });
+      setDescTranslated(true);
+    } catch(err) {
+      alert('Errore nella traduzione automatica. Controlla la connessione.');
+    } finally {
+      setIsTranslatingDesc(false);
     }
   };
 
@@ -1132,16 +1191,27 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
         )
       ),
       !isBarCat && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }},
-        e('label', { style: { display: 'block', fontSize: '13px', color: '#2d3748', fontWeight: '600', marginBottom: '10px' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+        e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }},
+          e('label', { style: { fontSize: '13px', color: '#2d3748', fontWeight: '600' }}, '\uD83D\uDCDD Descrizione (opzionale)'),
+          e('button', {
+            type: 'button',
+            onClick: autoTranslateDesc,
+            disabled: isTranslatingDesc,
+            style: { padding: '6px 12px', background: '#ca4d4f', color: '#fff', border: 'none', borderRadius: '6px', cursor: isTranslatingDesc ? 'wait' : 'pointer', fontSize: '12px', whiteSpace: 'nowrap', opacity: isTranslatingDesc ? 0.7 : 1 }
+          }, isTranslatingDesc ? '⏳ Traduzione...' : '🌐 Traduci descrizione')
+        ),
+        descTranslated && e('div', { style: { margin: '0 0 10px', padding: '8px 12px', background: '#fffbea', border: '1px solid #f6e05e', borderRadius: '6px', fontSize: '12px', color: '#744210' }},
+          '✅ Traduzioni generate — controlla e correggi se necessario.'
+        ),
         LANGUAGES.map(l =>
           e('div', { key: 'desc-' + l.code, style: { marginBottom: '10px' }},
             e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, l.flag, ' ', l.name),
             e('textarea', {
               value: (formData.description && formData.description[l.code]) || '',
-              onChange: ev => setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}),
+              onChange: ev => { setFormData({ ...formData, description: { ...(formData.description || {}), [l.code]: ev.target.value }}); if (l.code === 'it') setDescTranslated(false); },
               placeholder: l.code === 'it' ? 'Descrizione del piatto...' : 'Dish description...',
               rows: 2,
-              style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical' }
+              style: { width: '100%', padding: '8px', border: descTranslated && l.code !== 'it' ? '1px solid #bee3f8' : '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: '13px', resize: 'vertical', background: descTranslated && l.code !== 'it' ? '#ebf8ff' : '#fff' }
             })
           )
         )
@@ -1229,7 +1299,7 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
       const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-        body: JSON.stringify({ texts: textsToTranslate })
+        body: JSON.stringify({ texts: textsToTranslate, context: 'food_menu' })
       }, 20000);
       const data = await res.json();
       if (data.error) throw new Error(data.error);

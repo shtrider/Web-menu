@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const DEEPL_KEY = Deno.env.get("DEEPL_API_KEY") || "";
 const GOOGLE_KEY = Deno.env.get("GOOGLE_TRANSLATE_KEY") || "";
+const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
 
 async function translateDeepL(text: string, targetLang: string): Promise<string> {
   const res = await fetch("https://api-free.deepl.com/v2/translate", {
@@ -53,6 +54,70 @@ const DEEPL_LANGS: Record<string, string> = {
 };
 const ASIAN_LANGS = ["zh", "ja"];
 
+const LANG_NAMES: Record<string, string> = {
+  en: "English", es: "Spanish", fr: "French", de: "German", zh: "Chinese (Simplified)", ja: "Japanese"
+};
+
+async function refineFoodTranslations(
+  originalIt: string,
+  translations: Record<string, string>
+): Promise<Record<string, string>> {
+  if (!ANTHROPIC_KEY) return translations;
+
+  try {
+    const translationEntries = Object.entries(translations)
+      .map(([lang, text]) => `<${lang}>${text}</${lang}>`)
+      .join("\n");
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        system: `You are a professional food-menu translator that refines machine translations of Italian restaurant dish descriptions. Apply these rules:
+
+1. Detect food-specific terminology (ingredients, cooking methods, dish names) and replace literal translations with culturally appropriate equivalents (e.g., "soffritto" → "aromatic base of onions, carrots, and celery").
+2. Adjust idioms or cultural references so they evoke the same feeling in the target culture (e.g., "comfort food" → a phrase natural in the target language).
+3. Preserve the original register (formal, casual, promotional, etc.).
+4. Consider the whole sentence for context — do NOT rely on direct dictionary lookups.
+5. Keep descriptions concise and appetizing, suitable for a restaurant menu.
+6. Return ONLY the refined translations in the exact XML format requested, no extra text.`,
+        messages: [{
+          role: "user",
+          content: `Original Italian: "${originalIt}"
+
+Machine translations:
+${translationEntries}
+
+Refine each translation following the food-menu guidelines. Return each refined translation in the same XML tag format:
+${Object.keys(translations).map(lang => `<${lang}>refined text here</${lang}>`).join("\n")}`
+        }]
+      }),
+    });
+
+    if (!res.ok) return translations;
+
+    const data = await res.json();
+    const content = data.content?.[0]?.text || "";
+
+    const refined = { ...translations };
+    for (const lang of Object.keys(translations)) {
+      const match = content.match(new RegExp(`<${lang}>([\\s\\S]*?)</${lang}>`));
+      if (match?.[1]?.trim()) {
+        refined[lang] = match[1].trim();
+      }
+    }
+    return refined;
+  } catch {
+    return translations;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -66,8 +131,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { texts } = await req.json();
+    const { texts, context } = await req.json();
     // texts: [{ text: "...", id: "name" }, { text: "...", id: "description" }]
+    // context: optional, "food_menu" enables AI-powered food translation refinement
 
     if (!Array.isArray(texts) || texts.length === 0) {
       return new Response(JSON.stringify({ error: "Invalid request" }), {
@@ -95,6 +161,11 @@ Deno.serve(async (req) => {
       );
       for (const [lang, text] of translations) {
         results[item.id][lang as string] = text as string;
+      }
+
+      // Apply food-menu AI refinement for descriptions
+      if (context === "food_menu" && item.id === "description" && item.text.trim()) {
+        results[item.id] = await refineFoodTranslations(item.text, results[item.id]);
       }
     }
 
