@@ -174,6 +174,30 @@ const AllergenIcon = ({ type, lang }) => {
   );
 };
 
+const FLAVOR_PROFILES = {
+  arancio: { color: '#e67e22', name: { it: 'Arancio', en: 'Orange', es: 'Naranja', fr: 'Orange', de: 'Orange', zh: '橙味', ja: 'オレンジ' }},
+  agrumato: { color: '#f39c12', name: { it: 'Agrumato', en: 'Citrus', es: 'Cítrico', fr: 'Agrumes', de: 'Zitrus', zh: '柑橘', ja: 'シトラス' }},
+  amaro: { color: '#c0392b', name: { it: 'Amaro', en: 'Bitter', es: 'Amargo', fr: 'Amer', de: 'Bitter', zh: '苦味', ja: 'ビター' }},
+  dolce: { color: '#f1c40f', name: { it: 'Dolce', en: 'Sweet', es: 'Dulce', fr: 'Doux', de: 'Süß', zh: '甜味', ja: 'スイート' }},
+  effervescente: { color: '#3498db', name: { it: 'Effervescente', en: 'Sparkling', es: 'Efervescente', fr: 'Pétillant', de: 'Spritzig', zh: '气泡', ja: 'スパークリング' }},
+  floreale: { color: '#e91e63', name: { it: 'Floreale', en: 'Floral', es: 'Floral', fr: 'Floral', de: 'Blumig', zh: '花香', ja: 'フローラル' }},
+  aromatico: { color: '#9b59b6', name: { it: 'Aromatico', en: 'Aromatic', es: 'Aromático', fr: 'Aromatique', de: 'Aromatisch', zh: '芳香', ja: 'アロマティック' }},
+  erbaceo: { color: '#27ae60', name: { it: 'Erbaceo', en: 'Herbal', es: 'Herbáceo', fr: 'Herbacé', de: 'Kräuter', zh: '草本', ja: 'ハーバル' }},
+  rinfrescante: { color: '#1abc9c', name: { it: 'Rinfrescante', en: 'Refreshing', es: 'Refrescante', fr: 'Rafraîchissant', de: 'Erfrischend', zh: '清爽', ja: 'リフレッシング' }},
+  affumicato: { color: '#7f8c8d', name: { it: 'Affumicato', en: 'Smoky', es: 'Ahumado', fr: 'Fumé', de: 'Rauchig', zh: '烟熏', ja: 'スモーキー' }},
+  speziato: { color: '#d35400', name: { it: 'Speziato', en: 'Spicy', es: 'Especiado', fr: 'Épicé', de: 'Würzig', zh: '辛辣', ja: 'スパイシー' }},
+  fruttato: { color: '#e74c3c', name: { it: 'Fruttato', en: 'Fruity', es: 'Afrutado', fr: 'Fruité', de: 'Fruchtig', zh: '果味', ja: 'フルーティー' }},
+  cremoso: { color: '#d4a574', name: { it: 'Cremoso', en: 'Creamy', es: 'Cremoso', fr: 'Crémeux', de: 'Cremig', zh: '奶油', ja: 'クリーミー' }},
+  caffe: { color: '#795548', name: { it: 'Caffè', en: 'Coffee', es: 'Café', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' }},
+  tropicale: { color: '#00bcd4', name: { it: 'Tropicale', en: 'Tropical', es: 'Tropical', fr: 'Tropical', de: 'Tropisch', zh: '热带', ja: 'トロピカル' }}
+};
+
+const FlavorTag = ({ type, lang }) => {
+  const fp = FLAVOR_PROFILES[type];
+  if (!fp) return null;
+  return e('span', { style: { display: 'inline-block', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: fp.color, background: fp.color + '18', border: '1px solid ' + fp.color + '40' }}, fp.name[lang] || fp.name.it);
+};
+
 const LANGUAGES = [
   { code: 'it', name: 'Italiano', flag: '🇮🇹' },
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -243,9 +267,50 @@ const defaultMenu = {
     { id: 71, name: { it: 'Birra alla spina Nastro Azzurro 40cl', en: 'Draught Nastro Azzurro 40cl', es: 'Cerveza de barril Nastro Azzurro 40cl', fr: 'Bière pression Nastro Azzurro 40cl', de: 'Nastro Azzurro vom Fass 40cl', zh: '生啤酒 Nastro Azzurro 40cl', ja: '生ビール ナストロ・アズーロ 40cl' }, price: 6, allergens: ['gluten'], image: '' }
   ],
   cocktails: [
-    { id: 80, name: { it: 'Cocktail classico', en: 'Classic cocktail', es: 'Cóctel clásico', fr: 'Cocktail classique', de: 'Klassischer Cocktail', zh: '经典鸡尾酒', ja: 'クラシックカクテル' }, price: 10, allergens: ['sulfites'], image: '' },
-    { id: 81, name: { it: 'Spritz Aperol', en: 'Aperol Spritz', es: 'Spritz Aperol', fr: 'Spritz Aperol', de: 'Aperol Spritz', zh: 'Aperol喷雾鸡尾酒', ja: 'アペロール スプリッツ' }, price: 8, allergens: ['sulfites'], image: '' },
-    { id: 82, name: { it: 'Negroni', en: 'Negroni', es: 'Negroni', fr: 'Negroni', de: 'Negroni', zh: '内格罗尼', ja: 'ネグローニ' }, price: 10, allergens: ['sulfites'], image: '' }
+    { id: 100, type: 'subcategory', name: { it: 'Bollicine & aperitivo', en: 'Bubbles & Aperitivo', es: 'Burbujas y aperitivo', fr: 'Bulles & apéritif', de: 'Prickelndes & Aperitif', zh: '气泡与开胃酒', ja: 'スパークリング＆アペリティーヴォ' } },
+    { id: 101, name: { it: 'Aperol Spritz' }, price: 10, allergens: [], flavorProfile: ['arancio', 'agrumato', 'effervescente'], description: { it: 'Aperol, Prosecco Kinivi, Soda' }, image: '' },
+    { id: 102, name: { it: 'Campari Spritz' }, price: 10, allergens: [], flavorProfile: ['amaro', 'agrumato', 'effervescente'], description: { it: 'Campari, Prosecco Kinivi, Soda' }, image: '' },
+    { id: 103, name: { it: 'Select Spritz' }, price: 10, allergens: [], flavorProfile: ['amaro', 'arancio', 'effervescente'], description: { it: 'Select, Prosecco Kinivi, Soda' }, image: '' },
+    { id: 104, name: { it: 'Hugo Spritz' }, price: 10, allergens: [], flavorProfile: ['floreale', 'dolce', 'effervescente'], description: { it: 'Liquore al Fior di Sambuco, Prosecco Kinivi, Soda' }, image: '' },
+    { id: 105, name: { it: 'Bergamotto Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'effervescente'], description: { it: 'Italicus Bergamotto, Prosecco Kinivi, SP Acqua Brillante' }, image: '' },
+    { id: 106, name: { it: 'Mally Rosa Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'floreale'], description: { it: 'Mally Rosa, Prosecco Kinivi, SP Pompelmo Rosa' }, image: '' },
+    { id: 107, name: { it: 'Mally Limone Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'fruttato', 'effervescente'], description: { it: 'Mally Limone Gin, Prosecco Kinivi, SP Acqua Brillante' }, image: '' },
+    { id: 108, name: { it: 'Negroni Sbagliato' }, price: 10, allergens: [], flavorProfile: ['amaro', 'effervescente', 'aromatico'], description: { it: 'Campari, Lillet Rouge, Prosecco Kinivi' }, image: '' },
+    { id: 109, type: 'subcategory', name: { it: 'Bitter', en: 'Bitter', es: 'Bitter', fr: 'Bitter', de: 'Bitter', zh: '苦味鸡尾酒', ja: 'ビター' } },
+    { id: 110, name: { it: 'Negroni' }, price: 10, allergens: [], flavorProfile: ['amaro', 'aromatico', 'agrumato'], description: { it: 'London Dry Gin, Campari, Lillet Rouge' }, image: '' },
+    { id: 111, name: { it: 'Americano' }, price: 10, allergens: [], flavorProfile: ['amaro', 'aromatico', 'effervescente'], description: { it: 'Campari, Lillet Rouge, Soda' }, image: '' },
+    { id: 112, name: { it: 'Boulevardier' }, price: 12, allergens: [], flavorProfile: ['amaro', 'affumicato', 'dolce'], description: { it: "Ballantine's, Campari, Lillet Rouge" }, image: '' },
+    { id: 113, name: { it: 'Mezcal Negroni' }, price: 12, allergens: [], flavorProfile: ['affumicato', 'amaro', 'aromatico'], description: { it: 'Mezcal, Campari, Lillet Rouge' }, image: '' },
+    { id: 114, type: 'subcategory', name: { it: 'Gin', en: 'Gin', es: 'Ginebra', fr: 'Gin', de: 'Gin', zh: '金酒', ja: 'ジン' } },
+    { id: 115, name: { it: 'Monkey 47 G&T' }, price: 14, allergens: [], flavorProfile: ['aromatico', 'agrumato', 'erbaceo'], description: { it: 'Monkey 47, Tonica Rovere' }, image: '' },
+    { id: 116, name: { it: 'Southside Fizz' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'erbaceo', 'rinfrescante'], description: { it: 'Beefeater Gin, succo limone, sciroppo zucchero, menta fresca, soda' }, image: '' },
+    { id: 117, name: { it: 'Beefeater Sour' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'rinfrescante'], description: { it: 'Beefeater 24, succo limone, sciroppo zucchero' }, image: '' },
+    { id: 118, type: 'subcategory', name: { it: 'Vodka', en: 'Vodka', es: 'Vodka', fr: 'Vodka', de: 'Wodka', zh: '伏特加', ja: 'ウォッカ' } },
+    { id: 119, name: { it: 'Moscow Mule' }, price: 10, allergens: [], flavorProfile: ['speziato', 'agrumato', 'rinfrescante'], description: { it: 'Absolut Vodka, succo lime, SP Ginger Beer' }, image: '' },
+    { id: 120, name: { it: 'Espresso Martini' }, price: 12, allergens: [], flavorProfile: ['caffe', 'dolce', 'cremoso'], description: { it: 'Absolut Vodka, Kahlua Caffè, espresso, sciroppo zucchero, Frangelico' }, image: '' },
+    { id: 121, name: { it: 'Lychee Martini' }, price: 12, allergens: [], flavorProfile: ['fruttato', 'dolce', 'floreale'], description: { it: 'Absolut Vodka, sciroppo lychee, Lillet Blanc, succo lime' }, image: '' },
+    { id: 122, type: 'subcategory', name: { it: 'Rum', en: 'Rum', es: 'Ron', fr: 'Rhum', de: 'Rum', zh: '朗姆酒', ja: 'ラム' } },
+    { id: 123, name: { it: 'Mojito' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'erbaceo', 'rinfrescante'], description: { it: 'Havana Club Blanco, succo lime, sciroppo zucchero, menta fresca, soda' }, image: '' },
+    { id: 124, name: { it: 'Dark & Stormy' }, price: 12, allergens: [], flavorProfile: ['speziato', 'agrumato', 'affumicato'], description: { it: 'Havana Club Anejo 7, succo limone, SP Ginger Beer' }, image: '' },
+    { id: 125, name: { it: 'Daiquiri alla Fragola' }, price: 10, allergens: [], flavorProfile: ['fruttato', 'dolce', 'agrumato'], description: { it: 'Havana Club Blanco, succo lime, sciroppo zucchero, sciroppo di fragola' }, image: '' },
+    { id: 126, type: 'subcategory', name: { it: 'Tequila', en: 'Tequila', es: 'Tequila', fr: 'Tequila', de: 'Tequila', zh: '龙舌兰', ja: 'テキーラ' } },
+    { id: 127, name: { it: 'Margarita' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'dolce', 'fruttato'], description: { it: 'Altos Blanco, Cointreau, succo lime, sciroppo agave' }, image: '' },
+    { id: 128, name: { it: 'Paloma' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'fruttato', 'rinfrescante'], description: { it: 'Altos Blanco, succo lime, sciroppo agave, SP Pompelmo Rosa' }, image: '' },
+    { id: 129, name: { it: 'Tequila Sunrise' }, price: 12, allergens: [], flavorProfile: ['fruttato', 'dolce', 'tropicale'], description: { it: 'Altos Reposado, succo arancia, granatina' }, image: '' },
+    { id: 130, name: { it: 'Spicy Mango Margarita' }, price: 14, allergens: [], flavorProfile: ['speziato', 'tropicale', 'agrumato', 'fruttato'], description: { it: 'Altos Blanco, succo lime, sciroppo di mango, sciroppo agave, peperoncino' }, image: '' },
+    { id: 131, type: 'subcategory', name: { it: 'Whisky', en: 'Whisky', es: 'Whisky', fr: 'Whisky', de: 'Whisky', zh: '威士忌', ja: 'ウイスキー' } },
+    { id: 132, name: { it: 'Whisky Sour' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'dolce', 'affumicato'], description: { it: "Ballantine's, succo limone, sciroppo zucchero" }, image: '' },
+    { id: 133, name: { it: 'Old Fashioned' }, price: 12, allergens: [], flavorProfile: ['affumicato', 'amaro', 'dolce'], description: { it: 'Four Roses, sciroppo zucchero, Angostura Bitters' }, image: '' },
+    { id: 134, name: { it: 'Jameson Ginger & Lime' }, price: 10, allergens: [], flavorProfile: ['speziato', 'agrumato', 'rinfrescante'], description: { it: 'Jameson, succo lime, SP Ginger Beer, zenzero fresco' }, image: '' },
+    { id: 135, type: 'subcategory', name: { it: 'Varie', en: 'Various', es: 'Varios', fr: 'Divers', de: 'Verschiedenes', zh: '其他', ja: 'その他' } },
+    { id: 136, name: { it: 'Amaretto Sour' }, price: 10, allergens: [], flavorProfile: ['dolce', 'agrumato'], description: { it: 'Amaretto DiSaronno, succo limone, sciroppo zucchero' }, image: '' },
+    { id: 137, name: { it: 'Midori Sour' }, price: 10, allergens: [], flavorProfile: ['dolce', 'fruttato', 'agrumato'], description: { it: 'Midori, succo limone, sciroppo zucchero, SP Acqua Brillante' }, image: '' },
+    { id: 138, name: { it: 'Coco Loco' }, price: 10, allergens: [], flavorProfile: ['tropicale', 'fruttato', 'dolce'], description: { it: 'Malibu, Midori, succo ananas, succo lime' }, image: '' },
+    { id: 139, type: 'subcategory', name: { it: 'Analcolici', en: 'Non-Alcoholic', es: 'Sin alcohol', fr: 'Sans alcool', de: 'Alkoholfrei', zh: '无酒精', ja: 'ノンアルコール' } },
+    { id: 140, name: { it: 'Garden Spritz' }, price: 8, allergens: [], flavorProfile: ['aromatico', 'rinfrescante', 'agrumato'], description: { it: 'Beefeater 0%, SP Acqua Brillante, cetriolo, basilico, succo lime' }, image: '' },
+    { id: 141, name: { it: 'Pepino Fresco' }, price: 8, allergens: [], flavorProfile: ['rinfrescante', 'agrumato', 'erbaceo'], description: { it: 'Beefeater 0%, succo lime, cetriolo pestato, sciroppo zucchero, SP Acqua Brillante' }, image: '' },
+    { id: 142, name: { it: 'Bergamotto Tonic Zero' }, price: 8, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'effervescente'], description: { it: 'Beefeater 0%, Italicus (gocce), Tonica Premium' }, image: '' },
+    { id: 143, name: { it: 'Fiore di Menta' }, price: 8, allergens: [], flavorProfile: ['floreale', 'erbaceo', 'rinfrescante'], description: { it: 'Fior di Bitter Fiero S.Pellegrino, succo lime, menta fresca, sciroppo menta, succo cetriolo' }, image: '' }
   ],
   spirits: [
     { id: 90, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa', zh: '格拉巴酒', ja: 'グラッパ' }, price: 6, allergens: ['sulfites'], image: '' },
@@ -711,6 +776,7 @@ function App() {
 
   const _isWine = subCategory === 'wine';
   const _isBeer = subCategory === 'beer';
+  const _isCocktail = subCategory === 'cocktails' || subCategory === 'spirits';
 
   const renderSubHeader = (item, index) => {
     const displayName = item.name[lang] || item.name.it;
@@ -759,10 +825,14 @@ function App() {
           item.volume && e('span', null, item.volume, '% vol'),
           item.volumeCl && e('span', null, item.volumeCl, ' cl')
         ),
+        _isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '4px', fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}, item.description[lang] || item.description.it),
+        item.flavorProfile && item.flavorProfile.length > 0 && e('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }},
+          item.flavorProfile.map(f => e(FlavorTag, { key: f, type: f, lang }))
+        ),
         item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
           item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
         ),
-        !_isWine && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
+        !_isWine && !_isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
           e('button', {
             onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
             style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
