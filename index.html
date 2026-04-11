@@ -25,6 +25,14 @@
     .sync-indicator.error { display: block; background: #e53e3e; color: #fff; }
     .cat-pills::-webkit-scrollbar { display: none; }
     .cat-pills { scrollbar-width: none; -ms-overflow-style: none; }
+    button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    @media (max-width: 600px) {
+      main { padding: 12px !important; }
+      main h2 { font-size: 22px !important; }
+      footer { padding: 16px !important; }
+      header img { height: 48px !important; }
+      nav { padding: 0 8px !important; }
+    }
   </style>
 </head>
 <body>
@@ -361,6 +369,43 @@ function App() {
     return fixed;
   };
 
+  const inlineSubcategories = (dualMenu) => {
+    let maxId = 0;
+    ['default', 'sunday'].forEach(mode => {
+      if (!dualMenu[mode]) return;
+      Object.entries(dualMenu[mode]).filter(([k]) => k !== '_subcategories').forEach(([, items]) => {
+        if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; });
+      });
+    });
+    const result = {};
+    ['default', 'sunday'].forEach(mode => {
+      if (!dualMenu[mode]) { result[mode] = dualMenu[mode]; return; }
+      result[mode] = { ...dualMenu[mode] };
+      const subs = result[mode]._subcategories;
+      if (!subs || typeof subs !== 'object') { delete result[mode]._subcategories; return; }
+      for (const [cat, catSubs] of Object.entries(subs)) {
+        if (!Array.isArray(catSubs) || !Array.isArray(result[mode][cat])) continue;
+        if (result[mode][cat].some(i => i.type === 'subcategory')) continue;
+        const items = result[mode][cat];
+        const newItems = [];
+        const placed = new Set();
+        for (const sub of catSubs) {
+          const subIt = typeof sub === 'string' ? sub : sub.it;
+          const subName = typeof sub === 'string' ? { it: sub } : sub;
+          const matching = items.filter(i => i.subcategory === subIt);
+          if (matching.length > 0) {
+            newItems.push({ id: ++maxId, type: 'subcategory', name: subName });
+            matching.forEach(i => { newItems.push(i); placed.add(i); });
+          }
+        }
+        items.forEach(i => { if (!placed.has(i)) newItems.push(i); });
+        result[mode][cat] = newItems;
+      }
+      delete result[mode]._subcategories;
+    });
+    return result;
+  };
+
   const migrateMenuData = (data) => {
     const rawMenu = data.menu || {};
     let dual;
@@ -397,7 +442,7 @@ function App() {
           if (data.menu_override) setMenuOverride(data.menu_override);
           const migrated = migrateMenuData(data);
           const fixed = fixItemIds(migrated.menu);
-          setMenuData(fixed);
+          setMenuData(inlineSubcategories(fixed));
           setFullSpecials(migrated.specials);
           setFullUnavailable(migrated.unavailable_items);
         }
@@ -515,9 +560,8 @@ function App() {
   };
 
   const addSubcategory = async (name) => {
-    const subs = { ...(menu._subcategories || {}) };
-    if ((subs[subCategory] || []).some(s => (typeof s === 'string' ? s : s.it) === name)) return;
-    let subObj = { it: name };
+    if ((menu[subCategory] || []).some(i => i.type === 'subcategory' && i.name.it === name)) return;
+    let nameObj = { it: name };
     try {
       showSyncStatus('saving', '\uD83C\uDF10 Traducendo...');
       const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
@@ -527,19 +571,15 @@ function App() {
       }, 15000);
       const data = await res.json();
       if (data.results && data.results.sub) {
-        subObj = { it: name, ...data.results.sub };
+        nameObj = { it: name, ...data.results.sub };
       }
     } catch (err) { console.error('Translation error:', err); }
-    subs[subCategory] = [...(subs[subCategory] || []), subObj];
-    const newData = updateMode({ ...menu, _subcategories: subs });
-    saveToSupabase(newData, fullSpecials);
-  };
-
-  const deleteSubcategory = (itName) => {
-    if (!confirm(lang === 'it' ? 'Eliminare la sottocategoria "' + itName + '"?' : 'Delete subcategory "' + itName + '"?')) return;
-    const subs = { ...(menu._subcategories || {}) };
-    subs[subCategory] = (subs[subCategory] || []).filter(s => (typeof s === 'string' ? s : s.it) !== itName);
-    const newData = updateMode({ ...menu, _subcategories: subs });
+    const allIds = ['default', 'sunday'].flatMap(mode =>
+      Object.entries(menuData[mode] || {}).filter(([k]) => k !== '_subcategories').flatMap(([, v]) => Array.isArray(v) ? v : []).map(i => typeof i.id === 'number' && !isNaN(i.id) ? i.id : 0)
+    );
+    const newId = (allIds.length > 0 ? Math.max(...allIds) : 0) + 1;
+    const newModeMenu = { ...menu, [subCategory]: [...menu[subCategory], { id: newId, type: 'subcategory', name: nameObj }] };
+    const newData = updateMode(newModeMenu);
     saveToSupabase(newData, fullSpecials);
   };
 
@@ -610,20 +650,20 @@ function App() {
   };
 
   const _isWine = subCategory === 'wine';
+  const _isBeer = subCategory === 'beer';
 
-  const renderSubHeader = (sub) => {
-    const subObj = typeof sub === 'string' ? { it: sub } : sub;
-    const displayName = subObj[lang] || subObj.it;
-    const itName = subObj.it;
+  const renderSubHeader = (item, index) => {
+    const displayName = item.name[lang] || item.name.it;
     return e('div', {
-      key: 'subhdr-' + itName,
+      key: 'subhdr-' + item.id,
       style: { padding: '10px 16px', borderLeft: '4px solid ' + theme.accent, background: theme.catBg, borderRadius: '0 8px 8px 0', fontSize: '17px', fontWeight: '600', color: theme.accent, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
     },
       displayName,
-      isAdmin && e('button', {
-        onClick: () => deleteSubcategory(itName),
-        style: { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }
-      }, '\u2716')
+      isAdmin && e('div', { style: { display: 'flex', gap: '6px', alignItems: 'center' }},
+        e('button', { onClick: () => moveItem(subCategory, index, -1), disabled: index === 0, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === 0 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1, lineHeight: 1 }}, '\u25B2'),
+        e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC'),
+        e('button', { onClick: () => deleteItem(subCategory, item.id), style: { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}, '\u2716')
+      )
     );
   };
 
@@ -631,7 +671,7 @@ function App() {
     const isUnavailable = unavailableItems.includes(item.id);
     return e('div', {
       key: item.id,
-      style: { background: theme.cardBg, borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
+      style: { background: theme.cardBg, borderRadius: '12px', padding: 'clamp(14px, 3vw, 20px)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
     },
       isUnavailable && !isAdmin && e('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '12px' }},
         e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, unavailableText[lang] || unavailableText.it)
@@ -642,16 +682,21 @@ function App() {
         e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC')
       ),
       _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
+      _isBeer && item.serving && e('img', { src: 'icons/beer-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
       e('div', { style: { flex: 1, opacity: isUnavailable && !isAdmin ? 0.4 : 1 }},
         e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
           e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
-          e('span', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', item.price.toFixed(2))
+          e('span', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2))
         ),
         _isWine && (item.regione || item.cantina || item.volume) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
           item.cantina && e('span', null, item.cantina),
           item.regione && e('span', null, '\uD83D\uDCCD ', item.regione),
           item.volume && e('span', null, item.volume, '%')
+        ),
+        _isBeer && (item.volume || item.volumeCl) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
+          item.volume && e('span', null, item.volume, '% vol'),
+          item.volumeCl && e('span', null, item.volumeCl, ' cl')
         ),
         item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
           item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
@@ -690,8 +735,8 @@ function App() {
   return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
     showSpecials && e(SpecialsPopup, { specials, lang, onClose: () => setShowSpecials(false) }),
     showPinModal && e(PinModal, { pin, setPin, onSubmit: checkPin, onClose: () => { setShowPinModal(false); setPin(''); }}),
-    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }, isBarCat: barCats.includes(subCategory), currentCategory: subCategory, existingSubcats: (menu._subcategories && menu._subcategories[subCategory]) || [] }),
-    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => { setShowAddModal(false); setAddSubcategoryDefault(''); }, isBarCat: barCats.includes(subCategory), defaultSubcategory: addSubcategoryDefault, currentCategory: subCategory, existingSubcats: (menu._subcategories && menu._subcategories[subCategory]) || [] }),
+    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }, isBarCat: barCats.includes(subCategory), currentCategory: subCategory }),
+    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => setShowAddModal(false), isBarCat: barCats.includes(subCategory), currentCategory: subCategory }),
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
     e('header', { style: { background: theme.header, padding: scrolled ? '0px' : '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', transition: 'padding 0.25s ease', overflow: 'hidden', maxHeight: scrolled ? '0px' : '200px' }},
@@ -746,6 +791,10 @@ function App() {
               style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }
             }, LANGUAGES.find(l => l.code === lang)?.flag),
             showLangMenu && e('div', {
+              onClick: () => setShowLangMenu(false),
+              style: { position: 'fixed', inset: 0, zIndex: 99 }
+            }),
+            showLangMenu && e('div', {
               style: { position: 'absolute', top: '100%', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }
             },
               LANGUAGES.map(l => e('button', {
@@ -771,7 +820,7 @@ function App() {
 
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
-        e('h2', { style: { margin: 0, color: theme.accent, fontSize: '28px', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+        e('h2', { style: { margin: 0, color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
         isAdmin && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' }},
           e('button', {
             onClick: () => setShowAddModal(true),
@@ -785,26 +834,7 @@ function App() {
       ),
 
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
-        (() => {
-          const _isBarCat = barCats.includes(subCategory);
-          const _subcats = (menu._subcategories && menu._subcategories[subCategory]) || [];
-          if (_isBarCat && _subcats.length > 0) {
-            const els = [];
-            const allSubIts = _subcats.map(s => typeof s === 'string' ? s : s.it);
-            for (const sub of _subcats) {
-              const subIt = typeof sub === 'string' ? sub : sub.it;
-              els.push(renderSubHeader(sub));
-              currentItems.forEach((item, idx) => { if (item.subcategory === subIt) els.push(renderItemCard(item, idx)); });
-            }
-            currentItems.forEach((item, idx) => { if (!item.subcategory || !allSubIts.includes(item.subcategory)) els.push(renderItemCard(item, idx)); });
-            return els;
-          }
-          return currentItems.flatMap((item, index) => {
-            const hdr = _isBarCat && item.subcategory && (index === 0 || currentItems[index - 1].subcategory !== item.subcategory) ? renderSubHeader(item.subcategory) : null;
-            const card = renderItemCard(item, index);
-            return hdr ? [hdr, card] : [card];
-          });
-        })()
+        currentItems.map((item, index) => item.type === 'subcategory' ? renderSubHeader(item, index) : renderItemCard(item, index))
       ),
 
       e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
@@ -838,11 +868,11 @@ function SpecialsPopup({ specials, lang, onClose }) {
       style: { 
         background: '#2c3e2c', 
         borderRadius: '12px', 
-        padding: '40px', 
-        maxWidth: '500px', 
+        padding: 'clamp(20px, 5vw, 40px)',
+        maxWidth: '500px',
         width: '100%',
         boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 0 100px rgba(0,0,0,0.3)',
-        border: '12px solid #5c4033',
+        border: 'clamp(6px, 1.5vw, 12px) solid #5c4033',
         position: 'relative'
       },
       onClick: ev => ev.stopPropagation()
@@ -863,7 +893,7 @@ function SpecialsPopup({ specials, lang, onClose }) {
         e('div', { key: item.id, style: { marginBottom: '24px', borderBottom: '1px dashed rgba(245,245,220,0.3)', paddingBottom: '16px' }},
           e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }},
             e('h3', { style: { fontFamily: "'Caveat', cursive", color: '#ffd700', fontSize: '20px', margin: 0, textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}, item.name[lang] || item.name.it),
-            e('span', { style: { fontFamily: "'Caveat', cursive", color: '#98fb98', fontSize: '18px' }}, '€', item.price)
+            e('span', { style: { fontFamily: "'Caveat', cursive", color: '#98fb98', fontSize: '18px' }}, '€ ', (item.price || 0).toFixed(2))
           ),
           e('p', { style: { fontFamily: "'Caveat', cursive", color: 'rgba(245,245,220,0.8)', fontSize: '14px', margin: '8px 0 0', fontStyle: 'italic' }}, item.description[lang] || item.description.it)
         )
@@ -893,7 +923,7 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
     onClick: onClose
   },
     e('div', {
-      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '320px', width: '100%', textAlign: 'center' },
+      style: { background: '#fff', borderRadius: '16px', padding: 'clamp(20px, 4vw, 32px)', maxWidth: '320px', width: '100%', textAlign: 'center' },
       onClick: ev => ev.stopPropagation()
     },
       e('h3', { style: { margin: '0 0 8px', color: '#2d3748' }}, '🔐 Admin Access'),
@@ -914,7 +944,7 @@ function PinModal({ pin, setPin, onSubmit, onClose }) {
   );
 }
 
-function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, existingSubcats }) {
+function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory }) {
   const [formData, setFormData] = useState({ ...item, description: item.description || { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' } });
   const [isTranslatingDesc, setIsTranslatingDesc] = useState(false);
   const [descTranslated, setDescTranslated] = useState(false);
@@ -951,32 +981,10 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
     onClick: onClose
   },
     e('div', {
-      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      style: { background: '#fff', borderRadius: '16px', padding: 'clamp(20px, 4vw, 32px)', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
       onClick: ev => ev.stopPropagation()
     },
-      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '✏️ Modifica Piatto'),
-      isBarCat && e('div', { style: { marginBottom: '16px' }},
-        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, lang === 'it' ? 'Sottocategoria' : 'Subcategory'),
-        existingSubcats.length > 0 && e('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }},
-          existingSubcats.map(sub => {
-            const subIt = typeof sub === 'string' ? sub : sub.it;
-            const subDisplay = typeof sub === 'string' ? sub : (sub[lang] || sub.it);
-            return e('button', { key: subIt, type: 'button', onClick: () => setFormData({ ...formData, subcategory: formData.subcategory === subIt ? '' : subIt }),
-              style: { padding: '4px 12px', border: '2px solid', borderColor: formData.subcategory === subIt ? '#6b46c1' : '#e2e8f0', background: formData.subcategory === subIt ? '#faf5ff' : '#fff', borderRadius: '16px', cursor: 'pointer', fontSize: '12px' }
-            }, subDisplay);
-          }),
-          e('button', { type: 'button', onClick: () => setFormData({ ...formData, subcategory: '' }),
-            style: { padding: '4px 12px', border: '2px solid', borderColor: !formData.subcategory ? '#6b46c1' : '#e2e8f0', background: !formData.subcategory ? '#faf5ff' : '#fff', borderRadius: '16px', cursor: 'pointer', fontSize: '12px', color: '#718096' }
-          }, lang === 'it' ? 'Nessuna' : 'None')
-        ),
-        e('input', {
-          type: 'text',
-          value: formData.subcategory || '',
-          onChange: ev => setFormData({ ...formData, subcategory: ev.target.value }),
-          placeholder: lang === 'it' ? 'es. Rossi, Bianchi...' : 'e.g. Red, White...',
-          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
-        })
-      ),
+      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '\u270F\uFE0F Modifica Piatto'),
       LANGUAGES.map(l =>
         e('div', { key: l.code, style: { marginBottom: '16px' }},
           e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, l.flag, ' Nome (', l.name, ')'),
@@ -1063,6 +1071,26 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
           )
         )
       ),
+      currentCategory === 'beer' && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d' }},
+        e('label', { style: { display: 'block', fontSize: '13px', color: '#92400e', fontWeight: '600', marginBottom: '10px' }}, '\uD83C\uDF7A Dettagli Birra'),
+        e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }},
+          e('div', { style: { width: '80px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'Vol. %'),
+            e('input', { type: 'text', value: formData.volume || '', onChange: ev => setFormData({ ...formData, volume: ev.target.value }), placeholder: '5.0', style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }})
+          ),
+          e('div', { style: { width: '80px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'cl'),
+            e('input', { type: 'text', value: formData.volumeCl || '', onChange: ev => setFormData({ ...formData, volumeCl: ev.target.value }), placeholder: '33', style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }})
+          ),
+          e('div', null,
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'Servizio'),
+            e('div', { style: { display: 'flex', gap: '4px' }},
+              e('button', { type: 'button', onClick: () => setFormData({ ...formData, serving: formData.serving === 'bottle' ? '' : 'bottle' }), style: { padding: '6px 12px', border: '2px solid', borderColor: formData.serving === 'bottle' ? '#92400e' : '#e2e8f0', background: formData.serving === 'bottle' ? '#fef3c7' : '#fff', borderRadius: '6px', cursor: 'pointer' }}, e('img', { src: 'icons/beer-bottle.svg', width: 22, height: 22 })),
+              e('button', { type: 'button', onClick: () => setFormData({ ...formData, serving: formData.serving === 'draft' ? '' : 'draft' }), style: { padding: '6px 12px', border: '2px solid', borderColor: formData.serving === 'draft' ? '#92400e' : '#e2e8f0', background: formData.serving === 'draft' ? '#fef3c7' : '#fff', borderRadius: '6px', cursor: 'pointer' }}, e('img', { src: 'icons/beer-draft.svg', width: 22, height: 22 }))
+            )
+          )
+        )
+      ),
       e('div', { style: { marginBottom: '16px' }},
         e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '🖼️ URL Immagine (per lingue straniere)'),
         e('input', {
@@ -1081,8 +1109,8 @@ function EditModal({ item, lang, onSave, onClose, isBarCat, currentCategory, exi
   );
 }
 
-function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, currentCategory, existingSubcats }) {
-  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, description: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', subcategory: defaultSubcategory || '', regione: '', cantina: '', volume: '', serving: '' });
+function AddModal({ lang, onSave, onClose, isBarCat, currentCategory }) {
+  const [formData, setFormData] = useState({ name: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, description: { it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' }, price: 0, allergens: [], image: '', regione: '', cantina: '', volume: '', serving: '' });
   const [isTranslating, setIsTranslating] = useState(false);
   const [translated, setTranslated] = useState(false);
   const [isTranslatingDesc, setIsTranslatingDesc] = useState(false);
@@ -1142,32 +1170,10 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
     onClick: onClose
   },
     e('div', {
-      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      style: { background: '#fff', borderRadius: '16px', padding: 'clamp(20px, 4vw, 32px)', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
       onClick: ev => ev.stopPropagation()
     },
-      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '➕ Aggiungi Piatto'),
-      isBarCat && e('div', { style: { marginBottom: '16px' }},
-        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, lang === 'it' ? 'Sottocategoria' : 'Subcategory'),
-        existingSubcats.length > 0 && e('div', { style: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }},
-          existingSubcats.map(sub => {
-            const subIt = typeof sub === 'string' ? sub : sub.it;
-            const subDisplay = typeof sub === 'string' ? sub : (sub[lang] || sub.it);
-            return e('button', { key: subIt, type: 'button', onClick: () => setFormData({ ...formData, subcategory: formData.subcategory === subIt ? '' : subIt }),
-              style: { padding: '4px 12px', border: '2px solid', borderColor: formData.subcategory === subIt ? '#6b46c1' : '#e2e8f0', background: formData.subcategory === subIt ? '#faf5ff' : '#fff', borderRadius: '16px', cursor: 'pointer', fontSize: '12px' }
-            }, subDisplay);
-          }),
-          e('button', { type: 'button', onClick: () => setFormData({ ...formData, subcategory: '' }),
-            style: { padding: '4px 12px', border: '2px solid', borderColor: !formData.subcategory ? '#6b46c1' : '#e2e8f0', background: !formData.subcategory ? '#faf5ff' : '#fff', borderRadius: '16px', cursor: 'pointer', fontSize: '12px', color: '#718096' }
-          }, lang === 'it' ? 'Nessuna' : 'None')
-        ),
-        e('input', {
-          type: 'text',
-          value: formData.subcategory || '',
-          onChange: ev => setFormData({ ...formData, subcategory: ev.target.value }),
-          placeholder: lang === 'it' ? 'es. Rossi, Bianchi...' : 'e.g. Red, White...',
-          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
-        })
-      ),
+      e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '\u2795 Aggiungi Piatto'),
       e('div', { style: { marginBottom: '8px' }},
         e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '🇮🇹 Nome (Italiano)'),
         e('div', { style: { display: 'flex', gap: '8px' }},
@@ -1274,6 +1280,36 @@ function AddModal({ lang, onSave, onClose, isBarCat, defaultSubcategory, current
           )
         )
       ),
+      currentCategory === 'beer' && e('div', { style: { marginBottom: '16px', padding: '12px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d' }},
+        e('label', { style: { display: 'block', fontSize: '13px', color: '#92400e', fontWeight: '600', marginBottom: '10px' }}, '\uD83C\uDF7A Dettagli Birra'),
+        e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'flex-end' }},
+          e('div', { style: { width: '80px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'Vol. %'),
+            e('input', { type: 'text', value: formData.volume || '', onChange: ev => setFormData({ ...formData, volume: ev.target.value }), placeholder: '5.0', style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }})
+          ),
+          e('div', { style: { width: '80px' }},
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'cl'),
+            e('input', { type: 'text', value: formData.volumeCl || '', onChange: ev => setFormData({ ...formData, volumeCl: ev.target.value }), placeholder: '33', style: { width: '100%', padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }})
+          ),
+          e('div', null,
+            e('label', { style: { display: 'block', fontSize: '11px', color: '#718096', marginBottom: '3px' }}, 'Servizio'),
+            e('div', { style: { display: 'flex', gap: '4px' }},
+              e('button', { type: 'button', onClick: () => setFormData({ ...formData, serving: formData.serving === 'bottle' ? '' : 'bottle' }), style: { padding: '6px 12px', border: '2px solid', borderColor: formData.serving === 'bottle' ? '#92400e' : '#e2e8f0', background: formData.serving === 'bottle' ? '#fef3c7' : '#fff', borderRadius: '6px', cursor: 'pointer' }}, e('img', { src: 'icons/beer-bottle.svg', width: 22, height: 22 })),
+              e('button', { type: 'button', onClick: () => setFormData({ ...formData, serving: formData.serving === 'draft' ? '' : 'draft' }), style: { padding: '6px 12px', border: '2px solid', borderColor: formData.serving === 'draft' ? '#92400e' : '#e2e8f0', background: formData.serving === 'draft' ? '#fef3c7' : '#fff', borderRadius: '6px', cursor: 'pointer' }}, e('img', { src: 'icons/beer-draft.svg', width: 22, height: 22 }))
+            )
+          )
+        )
+      ),
+      e('div', { style: { marginBottom: '16px' }},
+        e('label', { style: { display: 'block', fontSize: '12px', color: '#718096', marginBottom: '4px' }}, '\uD83D\uDDBC\uFE0F URL Immagine (per lingue straniere)'),
+        e('input', {
+          type: 'url',
+          value: formData.image || '',
+          onChange: ev => setFormData({ ...formData, image: ev.target.value }),
+          placeholder: 'https://...',
+          style: { width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', boxSizing: 'border-box' }
+        })
+      ),
       e('div', { style: { display: 'flex', gap: '12px', marginTop: '24px' }},
         e('button', { onClick: onClose, style: { flex: 1, padding: '12px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Annulla'),
         e('button', { onClick: () => onSave(formData), style: { flex: 1, padding: '12px', border: 'none', background: '#38a169', color: '#fff', borderRadius: '8px', cursor: 'pointer' }}, 'Aggiungi')
@@ -1312,7 +1348,7 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
       }, 20000);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const newItems = [...items];
+      const newItems = items.map((item, i) => i !== idx ? item : { ...item, name: { ...item.name }, description: { ...item.description } });
       if (data.results.name) {
         Object.entries(data.results.name).forEach(([tl, txt]) => { newItems[idx].name[tl] = sanitizeText(txt); });
       }
@@ -1344,7 +1380,7 @@ function EditSpecialsModal({ specials, lang, onSave, onClose }) {
     onClick: onClose
   },
     e('div', {
-      style: { background: '#fff', borderRadius: '16px', padding: '32px', maxWidth: '700px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
+      style: { background: '#fff', borderRadius: '16px', padding: 'clamp(20px, 4vw, 32px)', maxWidth: '700px', width: '100%', maxHeight: '90vh', overflow: 'auto' },
       onClick: ev => ev.stopPropagation()
     },
       e('h3', { style: { margin: '0 0 20px', color: '#2d3748' }}, '📋 Modifica Speciali del Giorno'),
