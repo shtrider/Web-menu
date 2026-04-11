@@ -442,9 +442,46 @@ function App() {
           if (data.menu_override) setMenuOverride(data.menu_override);
           const migrated = migrateMenuData(data);
           const fixed = fixItemIds(migrated.menu);
-          setMenuData(inlineSubcategories(fixed));
+          const inlined = inlineSubcategories(fixed);
+          setMenuData(inlined);
           setFullSpecials(migrated.specials);
           setFullUnavailable(migrated.unavailable_items);
+          // Auto-translate subcategories missing translations
+          const untranslated = [];
+          for (const mode of ['default', 'sunday']) {
+            if (!inlined[mode]) continue;
+            for (const [cat, items] of Object.entries(inlined[mode])) {
+              if (!Array.isArray(items)) continue;
+              for (const item of items) {
+                if (item.type === 'subcategory' && item.name && Object.keys(item.name).length <= 1 && item.name.it) {
+                  untranslated.push({ mode, cat, id: item.id, text: item.name.it });
+                }
+              }
+            }
+          }
+          if (untranslated.length > 0) {
+            try {
+              const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+                body: JSON.stringify({ texts: untranslated.map((u, i) => ({ text: u.text, id: 'sub_' + i })) })
+              }, 20000);
+              const tData = await res.json();
+              if (tData.results) {
+                const updated = { ...inlined };
+                untranslated.forEach((u, i) => {
+                  const tr = tData.results['sub_' + i];
+                  if (!tr) return;
+                  updated[u.mode] = { ...updated[u.mode] };
+                  updated[u.mode][u.cat] = updated[u.mode][u.cat].map(item =>
+                    item.id === u.id ? { ...item, name: { it: u.text, ...tr } } : item
+                  );
+                });
+                setMenuData(updated);
+                saveToSupabase(updated, migrated.specials);
+              }
+            } catch (err) { console.error('Auto-translate subcategories error:', err); }
+          }
         }
       } catch (error) {
         console.error('Error loading menu:', error);
@@ -583,6 +620,30 @@ function App() {
     saveToSupabase(newData, fullSpecials);
   };
 
+  const translateSubcategory = async (item) => {
+    if (!item.name.it) return;
+    try {
+      showSyncStatus('saving', '\uD83C\uDF10 Traducendo...');
+      const res = await fetchWithTimeout(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: [{ text: item.name.it, id: 'sub' }] })
+      }, 15000);
+      const data = await res.json();
+      if (data.results && data.results.sub) {
+        const updatedName = { it: item.name.it, ...data.results.sub };
+        const updatedItems = (menu[subCategory] || []).map(i => i.id === item.id ? { ...i, name: updatedName } : i);
+        const newModeMenu = { ...menu, [subCategory]: updatedItems };
+        const newData = updateMode(newModeMenu);
+        saveToSupabase(newData, fullSpecials);
+        showSyncStatus('saved', '\u2705 Tradotto!');
+      }
+    } catch (err) {
+      console.error('Translation error:', err);
+      showSyncStatus('error', '\u274C Errore traduzione');
+    }
+  };
+
   const saveSpecials = (newModeSpecials) => {
     const newFullSpecials = { ...fullSpecials, [activeMode]: newModeSpecials };
     setFullSpecials(newFullSpecials);
@@ -660,6 +721,7 @@ function App() {
     },
       displayName,
       isAdmin && e('div', { style: { display: 'flex', gap: '6px', alignItems: 'center' }},
+        e('button', { onClick: () => translateSubcategory(item), title: 'Traduci', style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '14px', lineHeight: 1 }}, '\uD83C\uDF10'),
         e('button', { onClick: () => moveItem(subCategory, index, -1), disabled: index === 0, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === 0 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1, lineHeight: 1 }}, '\u25B2'),
         e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC'),
         e('button', { onClick: () => deleteItem(subCategory, item.id), style: { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}, '\u2716')
