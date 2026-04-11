@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu - Borgo della Mistica | Hampton by Hilton</title>
+  <meta name="description" content="Menu digitale del ristorante Borgo della Mistica presso Hampton by Hilton">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data:; connect-src https://rzmscyptpkfhbatiouqk.supabase.co https://api.mymemory.translated.net; frame-ancestors 'none';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Georgia', serif; background: linear-gradient(135deg, #fff8f5 0%, #fff 100%); min-height: 100vh; padding-bottom: 70px; }
+    .loading-screen { position: fixed; inset: 0; background: #ca4d4f; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+    .loading-screen h1 { color: #fff; font-size: 32px; margin-bottom: 20px; }
+    .loading-screen .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cat-pills::-webkit-scrollbar { display: none; }
+    .cat-pills { scrollbar-width: none; -ms-overflow-style: none; }
+    button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    @media (max-width: 600px) {
+      main { padding: 12px !important; }
+      main h2 { font-size: 22px !important; }
+      footer { padding: 16px !important; }
+      header img { height: 48px !important; }
+      nav { padding: 0 8px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading-screen">
+    <img src="logo.png" alt="Borgo della Mistica" style="height:80px;object-fit:contain;filter:brightness(0) invert(1);margin-bottom:24px;">
+    <div class="spinner"></div>
+  </div>
+  <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous"></script>
+  <script>
+const fetchWithTimeout = async (url, options = {}, timeout = 8000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+};
+
+const _c = (s) => atob(s);
+const SUPABASE_URL = _c('aHR0cHM6Ly9yem1zY3lwdHBrZmg=') + _c('YmF0aW91cWsuc3VwYWJhc2UuY28=');
+const SUPABASE_KEY = _c('c2JfcHVibGlzaGFibGVf') + _c('X3hXdEVHZjF5dkVqdDhn') + _c('eV9SR1ZfZ18tT2tMR2tjWA==');
+
+const supabase = {
+  async getMenu() {
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+    const url = `${SUPABASE_URL}/rest/v1/menu_data?id=eq.main&select=*`;
+    const response = await fetchWithTimeout(url, { method: 'GET', headers }, 10000);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data[0] || null;
+  }
+};
+
+const e = React.createElement;
+const { useState, useEffect } = React;
+
+const isSafeUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  try { return new URL(url).protocol === 'https:'; } catch (err) { return false; }
+};
+
+const ALLERGENS = {
+  celery: { icon: 'celery', name: { it: 'Sedano', en: 'Celery', es: 'Apio', fr: 'Céleri', de: 'Sellerie', zh: '芹菜', ja: 'セロリ' }},
+  gluten: { icon: 'cereal', name: { it: 'Glutine', en: 'Gluten', es: 'Gluten', fr: 'Gluten', de: 'Gluten', zh: '麸质', ja: 'グルテン' }},
+  crustaceans: { icon: 'crustaceans', name: { it: 'Crostacei', en: 'Crustaceans', es: 'Crustáceos', fr: 'Crustacés', de: 'Krebstiere', zh: '甲壳类', ja: '甲殻類' }},
+  eggs: { icon: 'eggs', name: { it: 'Uova', en: 'Eggs', es: 'Huevos', fr: 'Œufs', de: 'Eier', zh: '鸡蛋', ja: '卵' }},
+  fish: { icon: 'fish', name: { it: 'Pesce', en: 'Fish', es: 'Pescado', fr: 'Poisson', de: 'Fisch', zh: '鱼', ja: '魚' }},
+  lupin: { icon: 'lupin', name: { it: 'Lupini', en: 'Lupin', es: 'Altramuces', fr: 'Lupin', de: 'Lupinen', zh: '羽扇豆', ja: 'ルピナス' }},
+  dairy: { icon: 'milk', name: { it: 'Latticini', en: 'Milk', es: 'Lácteos', fr: 'Lait', de: 'Milch', zh: '乳制品', ja: '乳製品' }},
+  molluscs: { icon: 'molluscs', name: { it: 'Molluschi', en: 'Molluscs', es: 'Moluscos', fr: 'Mollusques', de: 'Weichtiere', zh: '软体动物', ja: '軟体動物' }},
+  mustard: { icon: 'mustard', name: { it: 'Senape', en: 'Mustard', es: 'Mostaza', fr: 'Moutarde', de: 'Senf', zh: '芥末', ja: 'マスタード' }},
+  nuts: { icon: 'nuts', name: { it: 'Frutta a guscio', en: 'Tree Nuts', es: 'Frutos secos', fr: 'Fruits à coque', de: 'Schalenfrüchte', zh: '坚果', ja: 'ナッツ' }},
+  peanuts: { icon: 'peanuts', name: { it: 'Arachidi', en: 'Peanuts', es: 'Cacahuetes', fr: 'Arachides', de: 'Erdnüsse', zh: '花生', ja: 'ピーナッツ' }},
+  sesame: { icon: 'sesame', name: { it: 'Sesamo', en: 'Sesame', es: 'Sésamo', fr: 'Sésame', de: 'Sesam', zh: '芝麻', ja: 'ゴマ' }},
+  sulfites: { icon: 'so2', name: { it: 'Solfiti', en: 'Sulphites', es: 'Sulfitos', fr: 'Sulfites', de: 'Sulfite', zh: '亚硫酸盐', ja: '亜硫酸塩' }},
+  soy: { icon: 'soya', name: { it: 'Soia', en: 'Soy', es: 'Soja', fr: 'Soja', de: 'Soja', zh: '大豆', ja: '大豆' }},
+  vegetarian: { icon: 'vegetarian', name: { it: 'Vegetariano', en: 'Vegetarian', es: 'Vegetariano', fr: 'Végétarien', de: 'Vegetarisch', zh: '素食', ja: 'ベジタリアン' }},
+  pork: { icon: 'pork', name: { it: 'Maiale', en: 'Pork', es: 'Cerdo', fr: 'Porc', de: 'Schwein', zh: '猪肉', ja: '豚肉' }}
+};
+
+const AllergenIcon = ({ type, lang }) => {
+  const allergen = ALLERGENS[type];
+  if (!allergen) return null;
+  return e('span', { title: allergen.name[lang] || type, style: { cursor: 'help', display: 'inline-flex' } },
+    e('img', { src: 'allergens/' + allergen.icon + '.svg', alt: allergen.name[lang] || type, width: 20, height: 20, style: { opacity: 0.7 } })
+  );
+};
+
+const LANGUAGES = [
+  { code: 'it', name: 'Italiano', flag: '\uD83C\uDDEE\uD83C\uDDF9' },
+  { code: 'en', name: 'English', flag: '\uD83C\uDDEC\uD83C\uDDE7' },
+  { code: 'es', name: 'Español', flag: '\uD83C\uDDEA\uD83C\uDDF8' },
+  { code: 'fr', name: 'Français', flag: '\uD83C\uDDEB\uD83C\uDDF7' },
+  { code: 'de', name: 'Deutsch', flag: '\uD83C\uDDE9\uD83C\uDDEA' },
+  { code: 'zh', name: '中文', flag: '\uD83C\uDDE8\uD83C\uDDF3' },
+  { code: 'ja', name: '日本語', flag: '\uD83C\uDDEF\uD83C\uDDF5' }
+];
+
+const CATEGORY_NAMES = {
+  appetizers: { it: 'Antipasti', en: 'Appetizers', es: 'Entrantes', fr: 'Entrées', de: 'Vorspeisen', zh: '开胃菜', ja: '前菜' },
+  primi: { it: 'Primi Piatti', en: 'First Courses', es: 'Primeros Platos', fr: 'Premiers Plats', de: 'Erste Gänge', zh: '第一道', ja: 'プリモ' },
+  secondi: { it: 'Secondi', en: 'Main Courses', es: 'Segundos', fr: 'Plats Principaux', de: 'Hauptgerichte', zh: '第二道', ja: 'セコンド' },
+  contorni: { it: 'Contorni', en: 'Side Dishes', es: 'Guarniciones', fr: 'Accompagnements', de: 'Beilagen', zh: '配菜', ja: '付け合わせ' },
+  dessert: { it: 'Dolci', en: 'Desserts', es: 'Postres', fr: 'Desserts', de: 'Nachspeisen', zh: '甜点', ja: 'デザート' },
+  softdrinks: { it: 'Bevande', en: 'Soft Drinks', es: 'Refrescos', fr: 'Boissons', de: 'Softdrinks', zh: '软饮料', ja: 'ソフトドリンク' },
+  wine: { it: 'Vini', en: 'Wines', es: 'Vinos', fr: 'Vins', de: 'Weine', zh: '葡萄酒', ja: 'ワイン' },
+  beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere', zh: '啤酒', ja: 'ビール' },
+  cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails', zh: '鸡尾酒', ja: 'カクテル' },
+  spirits: { it: 'Liquori', en: 'Spirits', es: 'Licores', fr: 'Spiritueux', de: 'Spirituosen', zh: '烈酒', ja: 'スピリッツ' }
+};
+
+const RESERVE_TEXT = {
+  it: 'Prenota un tavolo',
+  en: 'Reserve a table',
+  es: 'Reservar mesa',
+  fr: 'Réserver une table',
+  de: 'Tisch reservieren',
+  zh: '预订餐桌',
+  ja: 'テーブルを予約'
+};
+
+function App() {
+  const [menuData, setMenuData] = useState(null);
+
+  const [unavailableItems, setUnavailableItems] = useState([]);
+
+  const [lang, setLang] = useState(() => {
+    const bl = (navigator.language || '').split('-')[0].toLowerCase();
+    return ['it','en','es','fr','de','zh','ja'].includes(bl) ? bl : 'it';
+  });
+  const [mainTab, setMainTab] = useState('kitchen');
+  const [subCategory, setSubCategory] = useState('appetizers');
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
+
+  const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
+  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+
+  const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
+
+  const inlineSubcategories = (menuObj) => {
+    if (!menuObj || typeof menuObj !== 'object') return menuObj;
+    const subs = menuObj._subcategories;
+    if (!subs || typeof subs !== 'object') {
+      const result = { ...menuObj };
+      delete result._subcategories;
+      return result;
+    }
+    let maxId = 0;
+    Object.entries(menuObj).filter(([k]) => k !== '_subcategories').forEach(([, items]) => {
+      if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; });
+    });
+    const result = { ...menuObj };
+    for (const [cat, catSubs] of Object.entries(subs)) {
+      if (!Array.isArray(catSubs) || !Array.isArray(result[cat])) continue;
+      if (result[cat].some(i => i.type === 'subcategory')) continue;
+      const items = result[cat];
+      const newItems = [];
+      const placed = new Set();
+      for (const sub of catSubs) {
+        const subIt = typeof sub === 'string' ? sub : sub.it;
+        const subName = typeof sub === 'string' ? { it: sub } : sub;
+        const matching = items.filter(i => i.subcategory === subIt);
+        if (matching.length > 0) {
+          newItems.push({ id: ++maxId, type: 'subcategory', name: subName });
+          matching.forEach(i => { newItems.push(i); placed.add(i); });
+        }
+      }
+      items.forEach(i => { if (!placed.has(i)) newItems.push(i); });
+      result[cat] = newItems;
+    }
+    delete result._subcategories;
+    return result;
+  };
+
+  useEffect(() => {
+    async function loadMenu() {
+      try {
+        const data = await supabase.getMenu();
+        if (data) {
+          const rawMenu = data.menu || {};
+          // Always use the 'default' (Borgo) menu
+          let menu;
+          if (rawMenu.default && typeof rawMenu.default === 'object' && (rawMenu.default.appetizers || rawMenu.default.softdrinks)) {
+            menu = rawMenu.default;
+          } else {
+            menu = rawMenu;
+          }
+          setMenuData(inlineSubcategories(menu));
+
+          let ua = data.unavailable_items;
+          if (ua && typeof ua === 'object' && !Array.isArray(ua)) ua = ua.default || [];
+          setUnavailableItems(Array.isArray(ua) ? ua : []);
+        }
+      } catch (error) {
+        console.error('Error loading menu:', error);
+      } finally {
+        setIsLoading(false);
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+    loadMenu();
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+      const el = document.getElementById('loading');
+      if (el) el.style.display = 'none';
+    }, 12000);
+    return () => clearTimeout(safetyTimer);
+  }, []);
+
+  useEffect(() => {
+    if (mainTab === 'kitchen' && !kitchenCats.includes(subCategory)) {
+      setSubCategory('appetizers');
+    } else if (mainTab === 'bar' && !barCats.includes(subCategory)) {
+      setSubCategory('softdrinks');
+    }
+  }, [mainTab]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  if (isLoading || !menuData) return null;
+
+  const currentItems = menuData[subCategory] || [];
+
+  const theme = {
+    bg: 'linear-gradient(135deg, #fff8f5 0%, #fff 100%)',
+    header: '#ca4d4f',
+    accent: '#ca4d4f',
+    navBg: '#fff',
+    navBorder: '#e2e8f0',
+    catBorder: '#ca4d4f',
+    catBg: '#f7fafc',
+    cardBg: '#fff',
+    cardBorder: '#e2e8f0',
+    titleColor: '#2d3748',
+    priceColor: '#ca4d4f',
+    tabActive: '#ca4d4f',
+    legendBg: '#f7fafc',
+    footerColor: '#a0aec0'
+  };
+
+  const _isWine = subCategory === 'wine';
+  const _isBeer = subCategory === 'beer';
+
+  const renderSubHeader = (item) => {
+    const displayName = item.name[lang] || item.name.it;
+    return e('div', {
+      key: 'subhdr-' + item.id,
+      style: { padding: '10px 16px', borderLeft: '4px solid ' + theme.accent, background: theme.catBg, borderRadius: '0 8px 8px 0', fontSize: '17px', fontWeight: '600', color: theme.accent }
+    }, displayName);
+  };
+
+  const renderItemCard = (item) => {
+    const isUnavailable = unavailableItems.includes(item.id);
+    return e('div', {
+      key: item.id,
+      style: { background: theme.cardBg, borderRadius: '12px', padding: 'clamp(14px, 3vw, 20px)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
+    },
+      isUnavailable && e('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '12px' }},
+        e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, unavailableText[lang] || unavailableText.it)
+      ),
+      _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
+      _isBeer && item.serving && e('img', { src: 'icons/beer-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
+      barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
+      e('div', { style: { flex: 1, opacity: isUnavailable ? 0.4 : 1 }},
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
+          e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
+          e('span', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2))
+        ),
+        _isWine && (item.regione || item.cantina || item.volume) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
+          item.cantina && e('span', null, item.cantina),
+          item.regione && e('span', null, '\uD83D\uDCCD ', item.regione),
+          item.volume && e('span', null, item.volume, '%')
+        ),
+        _isBeer && (item.volume || item.volumeCl) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
+          item.volume && e('span', null, item.volume, '% vol'),
+          item.volumeCl && e('span', null, item.volumeCl, ' cl')
+        ),
+        item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
+          item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
+        ),
+        !_isWine && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
+          e('button', {
+            onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
+            style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
+          }, expandedItems[item.id] ? '\u25B2' : '\u25BC', ' ', expandedItems[item.id] ? (lang === 'it' ? 'Nascondi' : 'Hide') : (lang === 'it' ? 'Dettagli' : lang === 'es' ? 'Detalles' : lang === 'fr' ? 'Détails' : lang === 'de' ? 'Details' : lang === 'zh' ? '\u8BE6\u60C5' : lang === 'ja' ? '\u8A73\u7D30' : 'Details')),
+          expandedItems[item.id] && e('div', { style: { marginTop: '8px', padding: '12px', background: theme.catBg, borderRadius: '8px', border: '1px solid ' + theme.cardBorder }},
+            e('p', { style: { margin: 0, fontSize: '14px', color: '#4a5568', lineHeight: '1.6' }}, item.description[lang] || item.description.it),
+            lang !== 'it' && isSafeUrl(item.image) && e('div', { style: { marginTop: '10px' }},
+              e('img', { src: item.image, style: { width: '100%', maxWidth: '300px', height: 'auto', borderRadius: '8px', display: 'block' }, referrerPolicy: 'no-referrer' }),
+              e('p', { style: { margin: '6px 0 0', fontSize: '11px', color: '#a0aec0', fontStyle: 'italic' }}, { en: 'Image for illustration purposes only. Actual plating may vary.', es: 'Imagen solo con fines ilustrativos. La presentación real puede variar.', fr: 'Image à titre indicatif uniquement. La présentation réelle peut varier.', de: 'Bild dient nur zur Veranschaulichung. Das tatsächliche Gericht kann abweichen.', zh: '图片仅供参考，实际摆盘可能有所不同。', ja: '画像はイメージです。実際の盛り付けは異なる場合があります。' }[lang] || 'Image for illustration purposes only.')
+            )
+          )
+        )
+      )
+    );
+  };
+
+  return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
+    e('header', { style: { background: theme.header, padding: scrolled ? '0px' : '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', transition: 'padding 0.25s ease', overflow: 'hidden', maxHeight: scrolled ? '0px' : '200px' }},
+      e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }})
+    ),
+
+    e('div', { style: { position: 'sticky', top: 0, zIndex: 50 }},
+      e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }},
+        e('div', { style: { display: 'flex', gap: '0' }},
+          e('button', {
+            onClick: () => setMainTab('kitchen'),
+            style: { padding: '12px 16px', border: 'none', background: mainTab === 'kitchen' ? theme.tabActive : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          }, '\uD83C\uDF7D\uFE0F ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
+          e('button', {
+            onClick: () => setMainTab('bar'),
+            style: { padding: '12px 16px', border: 'none', background: mainTab === 'bar' ? theme.tabActive : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
+          }, '\uD83C\uDF78 Bar')
+        ),
+        e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
+          e('div', { style: { position: 'relative' }},
+            e('button', {
+              onClick: () => setShowLangMenu(!showLangMenu),
+              style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }
+            }, LANGUAGES.find(l => l.code === lang)?.flag),
+            showLangMenu && e('div', {
+              onClick: () => setShowLangMenu(false),
+              style: { position: 'fixed', inset: 0, zIndex: 99 }
+            }),
+            showLangMenu && e('div', {
+              style: { position: 'absolute', top: '100%', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }
+            },
+              LANGUAGES.map(l => e('button', {
+                key: l.code,
+                onClick: () => { setLang(l.code); setShowLangMenu(false); },
+                style: { display: 'block', width: '100%', padding: '10px 20px', border: 'none', background: lang === l.code ? theme.accent : '#fff', color: lang === l.code ? '#fff' : '#333', cursor: 'pointer', textAlign: 'left', fontSize: '14px' }
+              }, l.flag, ' ', l.name))
+            )
+          )
+        )
+      ),
+
+      e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '10px 24px', background: theme.catBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
+        (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
+          e('button', {
+            key: cat,
+            onClick: () => setSubCategory(cat),
+            style: { padding: '10px 20px', border: subCategory === cat ? '2px solid ' + theme.catBorder : '1px solid ' + theme.navBorder, background: '#fff', color: subCategory === cat ? theme.accent : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400', whiteSpace: 'nowrap', flexShrink: 0 }
+          }, CATEGORY_NAMES[cat]?.[lang] || cat)
+        )
+      )
+    ),
+
+    e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
+      e('h2', { style: { margin: '0 0 20px', color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+
+      e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
+        currentItems.map((item) => item.type === 'subcategory' ? renderSubHeader(item) : renderItemCard(item))
+      ),
+
+      e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
+        e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
+        e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
+          Object.entries(ALLERGENS).map(([key, val]) =>
+            e('span', { key, style: { fontSize: '12px', color: '#4a5568', display: 'flex', alignItems: 'center', gap: '6px' }},
+              e(AllergenIcon, { type: key, lang }),
+              ' ', val.name[lang]
+            )
+          )
+        )
+      )
+    ),
+
+    e('footer', { style: { textAlign: 'center', padding: '24px', color: theme.footerColor, fontSize: '12px' }},
+      '\u00A9 ' + new Date().getFullYear() + ' Borgo della Mistica'
+    ),
+
+    // Sticky bottom reservation bar
+    e('div', { style: { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, background: 'linear-gradient(135deg, #ca4d4f 0%, #a03032 100%)', boxShadow: '0 -2px 12px rgba(0,0,0,0.15)', padding: '0' }},
+      e('a', {
+        href: 'https://borgomistica.superbexperience.com/reserve/experience/67d1ea7250ccfac6d7ae747e',
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px 24px', color: '#fff', textDecoration: 'none', fontSize: '17px', fontWeight: '600', letterSpacing: '0.5px' }
+      },
+        e('span', { style: { fontSize: '20px' }}, '\uD83D\uDD14'),
+        RESERVE_TEXT[lang] || RESERVE_TEXT.en
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+  </script>
+</body>
+</html>
