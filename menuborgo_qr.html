@@ -109,6 +109,30 @@ const AllergenIcon = ({ type, lang }) => {
   );
 };
 
+const FLAVOR_PROFILES = {
+  arancio: { color: '#e67e22', name: { it: 'Arancio', en: 'Orange', es: 'Naranja', fr: 'Orange', de: 'Orange', zh: '橙味', ja: 'オレンジ' }},
+  agrumato: { color: '#f39c12', name: { it: 'Agrumato', en: 'Citrus', es: 'Cítrico', fr: 'Agrumes', de: 'Zitrus', zh: '柑橘', ja: 'シトラス' }},
+  amaro: { color: '#c0392b', name: { it: 'Amaro', en: 'Bitter', es: 'Amargo', fr: 'Amer', de: 'Bitter', zh: '苦味', ja: 'ビター' }},
+  dolce: { color: '#f1c40f', name: { it: 'Dolce', en: 'Sweet', es: 'Dulce', fr: 'Doux', de: 'Süß', zh: '甜味', ja: 'スイート' }},
+  effervescente: { color: '#3498db', name: { it: 'Effervescente', en: 'Sparkling', es: 'Efervescente', fr: 'Pétillant', de: 'Spritzig', zh: '气泡', ja: 'スパークリング' }},
+  floreale: { color: '#e91e63', name: { it: 'Floreale', en: 'Floral', es: 'Floral', fr: 'Floral', de: 'Blumig', zh: '花香', ja: 'フローラル' }},
+  aromatico: { color: '#9b59b6', name: { it: 'Aromatico', en: 'Aromatic', es: 'Aromático', fr: 'Aromatique', de: 'Aromatisch', zh: '芳香', ja: 'アロマティック' }},
+  erbaceo: { color: '#27ae60', name: { it: 'Erbaceo', en: 'Herbal', es: 'Herbáceo', fr: 'Herbacé', de: 'Kräuter', zh: '草本', ja: 'ハーバル' }},
+  rinfrescante: { color: '#1abc9c', name: { it: 'Rinfrescante', en: 'Refreshing', es: 'Refrescante', fr: 'Rafraîchissant', de: 'Erfrischend', zh: '清爽', ja: 'リフレッシング' }},
+  affumicato: { color: '#7f8c8d', name: { it: 'Affumicato', en: 'Smoky', es: 'Ahumado', fr: 'Fumé', de: 'Rauchig', zh: '烟熏', ja: 'スモーキー' }},
+  speziato: { color: '#d35400', name: { it: 'Speziato', en: 'Spicy', es: 'Especiado', fr: 'Épicé', de: 'Würzig', zh: '辛辣', ja: 'スパイシー' }},
+  fruttato: { color: '#e74c3c', name: { it: 'Fruttato', en: 'Fruity', es: 'Afrutado', fr: 'Fruité', de: 'Fruchtig', zh: '果味', ja: 'フルーティー' }},
+  cremoso: { color: '#d4a574', name: { it: 'Cremoso', en: 'Creamy', es: 'Cremoso', fr: 'Crémeux', de: 'Cremig', zh: '奶油', ja: 'クリーミー' }},
+  caffe: { color: '#795548', name: { it: 'Caffè', en: 'Coffee', es: 'Café', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' }},
+  tropicale: { color: '#00bcd4', name: { it: 'Tropicale', en: 'Tropical', es: 'Tropical', fr: 'Tropical', de: 'Tropisch', zh: '热带', ja: 'トロピカル' }}
+};
+
+const FlavorTag = ({ type, lang }) => {
+  const fp = FLAVOR_PROFILES[type];
+  if (!fp) return null;
+  return e('span', { style: { display: 'inline-block', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: fp.color, background: fp.color + '18', border: '1px solid ' + fp.color + '40' }}, fp.name[lang] || fp.name.it);
+};
+
 const LANGUAGES = [
   { code: 'it', name: 'Italiano', flag: '\uD83C\uDDEE\uD83C\uDDF9' },
   { code: 'en', name: 'English', flag: '\uD83C\uDDEC\uD83C\uDDE7' },
@@ -140,6 +164,104 @@ const RESERVE_TEXT = {
   de: 'Tisch reservieren',
   zh: '预订餐桌',
   ja: 'テーブルを予約'
+};
+
+const defaultMenu = {
+  appetizers: [
+    { id: 1, name: { it: 'Tartare di Black Angus con senape antica e tuorlo confit' }, price: 16, allergens: ['eggs', 'mustard'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/tartare-black-angus.png', description: { it: 'Carne cruda di Black Angus battuta a coltello, accompagnata da senape in grani e un tuorlo d\'uovo cotto a bassa temperatura' } },
+    { id: 2, name: { it: 'Burrata alla carbonara con guanciale di Amatrice DOP' }, price: 12, allergens: ['dairy', 'eggs', 'pork'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/burrata-carbonara.jpeg', description: { it: 'Cremosa burrata pugliese con fonduta di pecorino, guanciale croccante di Amatrice e una spolverata di pepe nero' } },
+    { id: 3, name: { it: 'Panzanella estiva del Borgo con alici marinate' }, price: 8, allergens: ['gluten', 'fish'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/panzanella-estiva.png', description: { it: 'L\'insalata toscana del Borgo reinterpretata con pane raffermo, pomodori maturi, cetrioli, cipolla rossa e alici del Cantabrico marinate' } },
+    { id: 4, name: { it: 'Bruschetta ricotta di bufala, datterino e crema al basilico' }, price: 6, allergens: ['gluten', 'dairy'], description: { it: 'Pane tostato croccante con ricotta fresca di bufala, datterini confit e una delicata crema al basilico fresco' } },
+    { id: 5, name: { it: 'Selezione di salumi e formaggi del territorio' }, price: 18, allergens: ['dairy', 'pork'], description: { it: 'Un viaggio nei sapori laziali: salumi artigianali e formaggi stagionati selezionati dai migliori produttori locali' } },
+    { id: 6, name: { it: 'Porchetta fatta in casa con focaccia olio e rosmarino' }, price: 14, allergens: ['gluten', 'pork'], description: { it: 'Porchetta artigianale cotta lentamente con erbe aromatiche, servita su focaccia all\'olio extravergine con rosmarino fresco' } }
+  ],
+  primi: [
+    { id: 8, name: { it: 'Spaghettone burro & alici con chips di fiori di zucca' }, price: 14, allergens: ['gluten', 'dairy', 'fish'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/spaghettone-burro-alici.png', description: { it: 'Pasta artigianale trafilata al bronzo mantecata con burro di montagna e alici del Cantabrico, guarnita con chips croccanti di fiori di zucca' } },
+    { id: 9, name: { it: 'Fettuccine al rag\u00F9 bianco con pesto di rucola e menta' }, price: 14, allergens: ['gluten', 'dairy'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/fettuccine-ragu-bianco.png', description: { it: 'Fettuccine fatte in casa con rag\u00F9 di carni bianche cotte lentamente, arricchite da un pesto fresco di rucola selvatica e menta' } },
+    { id: 10, name: { it: 'Tagliolino cacio e pepe, gamberi e lime' }, price: 16, allergens: ['gluten', 'dairy', 'crustaceans'], description: { it: 'Pasta all\'uovo sottile mantecata con pecorino romano e pepe nero, arricchita da gamberi freschi saltati e un tocco di lime' } },
+    { id: 11, name: { it: 'Ravioli ripieni di melanzane e scamorza con pomodorini e olio al basilico' }, price: 14, allergens: ['gluten', 'dairy'], description: { it: 'Ravioli fatti in casa ripieni di melanzane arrostite e scamorza affumicata, serviti con pomodorini freschi e olio aromatizzato al basilico' } },
+    { id: 12, name: { it: 'Mezza manica guanciale, zucchine e stracciatella' }, price: 14, allergens: ['gluten', 'dairy', 'pork'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/mezza-manica.png', description: { it: 'Pasta corta rigata saltata con guanciale rosolato, zucchine romanesche e una cascata di stracciatella pugliese' } }
+  ],
+  secondi: [
+    { id: 13, name: { it: 'Tagliata di manzo danese con pomodoro arrostito, insalatina aromatica e grana' }, price: 25, allergens: ['dairy'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/tagliata-manzo.png', description: { it: 'Controfiletto di manzo danese cotto alla griglia, servito con pomodorini arrostiti al forno, insalatina di erbe aromatiche e scaglie di Grana Padano DOP' } },
+    { id: 14, name: { it: 'Il nostro pollo ai peperoni' }, price: 16, allergens: [], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/pollo-peperoni.png', description: { it: 'Pollo ruspante cotto in padella con peperoni dolci, pomodoro fresco e un soffritto di cipolla e aglio \u2014 un classico della cucina romana casalinga' } },
+    { id: 15, name: { it: 'Costine di maiale CBT al barbecue con patatas bravas' }, price: 20, allergens: ['pork'], description: { it: 'Costine di maiale cotte a bassa temperatura per ore, glassate con salsa barbecue e servite con croccanti patatas bravas speziate' } },
+    { id: 16, name: { it: 'Borgo Burger \u2014 Bun artigianale, Hamburger di manzo 180gr con bufala affumicata, cuore di bue e maionese al basilico, servito con patate fritte' }, price: 18, allergens: ['gluten', 'dairy', 'eggs'], image: 'https://raw.githubusercontent.com/shtrider/Web-menu/main/images/borgo-burger.png', description: { it: 'Il nostro signature burger: pane artigianale, hamburger di manzo selezionato 180g, mozzarella di bufala campana affumicata, pomodoro cuore di bue e maionese fatta in casa al basilico fresco, con patate fritte croccanti' } },
+    { id: 17, name: { it: 'Frittura di alici, gamberi e zest di limone' }, price: 16, allergens: ['gluten', 'fish', 'crustaceans', 'eggs'], description: { it: 'Frittura croccante di alici fresche e gamberi, in pastella leggera, servita con zest di limone e maionese artigianale' } }
+  ],
+  contorni: [
+    { id: 18, name: { it: 'Verdure grigliate' }, price: 6, allergens: ['vegetarian'], description: { it: 'Zucchine, melanzane e peperoni grigliati alla brace e conditi con olio extravergine d\'oliva e erbe aromatiche' } },
+    { id: 19, name: { it: 'Patate al forno' }, price: 6, allergens: ['vegetarian'], description: { it: 'Patate a spicchi cotte al forno con rosmarino fresco, aglio e un filo d\'olio extravergine d\'oliva' } },
+    { id: 20, name: { it: 'Insalata mista' }, price: 6, allergens: ['vegetarian'], description: { it: 'Insalata fresca di stagione con lattuga, pomodorini, carote e un\'emulsione leggera al limone' } },
+    { id: 21, name: { it: 'Verdura del giorno ripassata' }, price: 6, allergens: ['vegetarian'], description: { it: 'Verdura di stagione ripassata in padella con aglio, olio extravergine e un tocco di peperoncino \u2014 alla maniera romana' } }
+  ],
+  dessert: [
+    { id: 22, name: { it: 'Crostatina crema al mascarpone e frutti di bosco o cacao' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], description: { it: 'Frolla croccante ripiena di crema al mascarpone, a scelta con frutti di bosco freschi o una ganache fondente al cacao' } },
+    { id: 23, name: { it: 'Semifreddo pesca e cioccolato' }, price: 6, allergens: ['dairy', 'eggs'], description: { it: 'Semifreddo artigianale al profumo di pesca bianca con cuore fondente al cioccolato, servito con coulis di pesca fresca' } },
+    { id: 24, name: { it: 'Panna cotta agli agrumi o caramello salato' }, price: 6, allergens: ['dairy'], description: { it: 'Panna cotta vellutata preparata con panna fresca di alta qualit\u00E0, a scelta con coulis di agrumi siciliani o caramello al sale marino' } }
+  ],
+  softdrinks: [
+    { id: 50, name: { it: 'Acqua minerale', en: 'Mineral water', es: 'Agua mineral', fr: 'Eau min\u00E9rale', de: 'Mineralwasser', zh: '矿泉水', ja: 'ミネラルウォーター' }, price: 2, allergens: [], image: '' },
+    { id: 51, name: { it: 'Coca-Cola / Coca-Cola Zero / Sprite', en: 'Coke / Coke Zero / Sprite', es: 'Coca-Cola / Coca-Cola Zero / Sprite', fr: 'Coca-Cola / Coca-Cola Zero / Sprite', de: 'Cola / Cola Zero / Sprite', zh: '可口可乐/可口可乐零/雪碧', ja: 'コカ・コーラ/コカ・コーラゼロ/スプライト' }, price: 3, allergens: [], image: '' }
+  ],
+  wine: [
+    { id: 60, name: { it: 'Vino rosso / bianco / spumante (calice)', en: 'Red / white / sparkling wine (glass)', es: 'Vino tinto / blanco / espumoso (copa)', fr: 'Vin rouge / blanc / mousseux (verre)', de: 'Rot- / Wei\u00DF- / Schaumwein (Glas)', zh: '红/白/气泡酒（杯）', ja: '赤・白・スパークリングワイン（グラス）' }, price: 8, allergens: ['sulfites'], image: '' }
+  ],
+  beer: [
+    { id: 70, name: { it: 'Birra Peroni Capri / Raffo', en: 'Peroni Capri / Raffo beer', es: 'Cerveza Peroni Capri / Raffo', fr: 'Bi\u00E8re Peroni Capri / Raffo', de: 'Peroni Capri / Raffo Bier', zh: 'Peroni Capri/Raffo啤酒', ja: 'ペローニ・カプリ/ラッフォビール' }, price: 5, allergens: ['gluten'], image: '' },
+    { id: 71, name: { it: 'Birra alla spina Nastro Azzurro 40cl', en: 'Draught Nastro Azzurro 40cl', es: 'Cerveza de barril Nastro Azzurro 40cl', fr: 'Bi\u00E8re pression Nastro Azzurro 40cl', de: 'Nastro Azzurro vom Fass 40cl', zh: '生啤酒 Nastro Azzurro 40cl', ja: '生ビール ナストロ・アズーロ 40cl' }, price: 6, allergens: ['gluten'], image: '' }
+  ],
+  cocktails: [
+    { id: 100, type: 'subcategory', name: { it: 'Bollicine & aperitivo', en: 'Bubbles & Aperitivo', es: 'Burbujas y aperitivo', fr: 'Bulles & ap\u00E9ritif', de: 'Prickelndes & Aperitif', zh: '气泡与开胃酒', ja: 'スパークリング＆アペリティーヴォ' } },
+    { id: 101, name: { it: 'Aperol Spritz' }, price: 10, allergens: [], flavorProfile: ['arancio', 'agrumato', 'effervescente'], description: { it: 'Aperol, Prosecco, Soda' }, image: '' },
+    { id: 102, name: { it: 'Campari Spritz' }, price: 10, allergens: [], flavorProfile: ['amaro', 'agrumato', 'effervescente'], description: { it: 'Campari, Prosecco, Soda' }, image: '' },
+    { id: 103, name: { it: 'Select Spritz' }, price: 10, allergens: [], flavorProfile: ['amaro', 'arancio', 'effervescente'], description: { it: 'Select, Prosecco, Soda' }, image: '' },
+    { id: 104, name: { it: 'Hugo Spritz' }, price: 10, allergens: [], flavorProfile: ['floreale', 'dolce', 'effervescente'], description: { it: 'Liquore al Fior di Sambuco, Prosecco, Soda' }, image: '' },
+    { id: 105, name: { it: 'Bergamotto Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'effervescente'], description: { it: 'Italicus Bergamotto, Prosecco, SP Acqua Brillante' }, image: '' },
+    { id: 106, name: { it: 'Malfy Rosa Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'floreale'], description: { it: 'Malfy Rosa, Prosecco, SP Pompelmo Rosa' }, image: '' },
+    { id: 107, name: { it: 'Malfy Limone Spritz' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'fruttato', 'effervescente'], description: { it: 'Malfy Limone Gin, Prosecco, SP Acqua Brillante' }, image: '' },
+    { id: 108, name: { it: 'Negroni Sbagliato' }, price: 10, allergens: [], flavorProfile: ['amaro', 'effervescente', 'aromatico'], description: { it: 'Campari, Lillet Rouge, Prosecco' }, image: '' },
+    { id: 109, type: 'subcategory', name: { it: 'Bitter', en: 'Bitter', es: 'Bitter', fr: 'Bitter', de: 'Bitter', zh: '苦味鸡尾酒', ja: 'ビター' } },
+    { id: 110, name: { it: 'Negroni' }, price: 10, allergens: [], flavorProfile: ['amaro', 'aromatico', 'agrumato'], description: { it: 'London Dry Gin, Campari, Lillet Rouge' }, image: '' },
+    { id: 111, name: { it: 'Americano Cocktail' }, price: 10, allergens: [], flavorProfile: ['amaro', 'aromatico', 'effervescente'], description: { it: 'Campari, Lillet Rouge, Soda' }, image: '' },
+    { id: 112, name: { it: 'Boulevardier' }, price: 10, allergens: [], flavorProfile: ['amaro', 'affumicato', 'dolce'], description: { it: "Ballantine's, Campari, Lillet Rouge" }, image: '' },
+    { id: 113, name: { it: 'Mezcal Negroni' }, price: 12, allergens: [], flavorProfile: ['affumicato', 'amaro', 'aromatico'], description: { it: 'Mezcal, Campari, Lillet Rouge' }, image: '' },
+    { id: 114, type: 'subcategory', name: { it: 'Gin', en: 'Gin', es: 'Ginebra', fr: 'Gin', de: 'Gin', zh: '金酒', ja: 'ジン' } },
+    { id: 115, name: { it: 'Monkey 47 G&T' }, price: 12, allergens: [], flavorProfile: ['aromatico', 'agrumato', 'erbaceo'], description: { it: 'Monkey 47, Tonica Rovere' }, image: '' },
+    { id: 116, name: { it: 'Southside Fizz' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'erbaceo', 'rinfrescante'], description: { it: 'Beefeater Gin, succo limone, sciroppo zucchero, menta fresca, soda' }, image: '' },
+    { id: 117, name: { it: 'Beefeater Sour' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'rinfrescante'], description: { it: 'Beefeater 24, succo limone, sciroppo zucchero' }, image: '' },
+    { id: 118, type: 'subcategory', name: { it: 'Vodka', en: 'Vodka', es: 'Vodka', fr: 'Vodka', de: 'Wodka', zh: '伏特加', ja: 'ウォッカ' } },
+    { id: 119, name: { it: 'Moscow Mule' }, price: 10, allergens: [], flavorProfile: ['speziato', 'agrumato', 'rinfrescante'], description: { it: 'Absolut Vodka, succo lime, SP Ginger Beer' }, image: '' },
+    { id: 120, name: { it: 'Espresso Martini' }, price: 12, allergens: [], flavorProfile: ['caffe', 'dolce', 'cremoso'], description: { it: 'Absolut Vodka, Kahlua Caff\u00E8, espresso, sciroppo zucchero, Frangelico' }, image: '' },
+    { id: 121, name: { it: 'Lychee Martini' }, price: 12, allergens: [], flavorProfile: ['fruttato', 'dolce', 'floreale'], description: { it: 'Absolut Vodka, sciroppo lychee, Lillet Blanc, succo lime' }, image: '' },
+    { id: 122, type: 'subcategory', name: { it: 'Rum', en: 'Rum', es: 'Ron', fr: 'Rhum', de: 'Rum', zh: '朗姆酒', ja: 'ラム' } },
+    { id: 123, name: { it: 'Mojito' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'erbaceo', 'rinfrescante'], description: { it: 'Havana Club Blanco, succo lime, sciroppo zucchero, menta fresca, soda' }, image: '' },
+    { id: 124, name: { it: 'Dark & Stormy' }, price: 12, allergens: [], flavorProfile: ['speziato', 'agrumato', 'affumicato'], description: { it: 'Havana Club Anejo 7, succo limone, SP Ginger Beer' }, image: '' },
+    { id: 125, name: { it: 'Daiquiri alla Fragola' }, price: 12, allergens: [], flavorProfile: ['fruttato', 'dolce', 'agrumato'], description: { it: 'Havana Club Blanco, succo lime, sciroppo zucchero, sciroppo di fragola' }, image: '' },
+    { id: 126, type: 'subcategory', name: { it: 'Tequila', en: 'Tequila', es: 'Tequila', fr: 'Tequila', de: 'Tequila', zh: '龙舌兰', ja: 'テキーラ' } },
+    { id: 127, name: { it: 'Margarita' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'dolce', 'fruttato'], description: { it: 'Altos Blanco, Cointreau, succo lime, sciroppo agave' }, image: '' },
+    { id: 128, name: { it: 'Paloma' }, price: 12, allergens: [], flavorProfile: ['agrumato', 'fruttato', 'rinfrescante'], description: { it: 'Altos Blanco, succo lime, sciroppo agave, SP Pompelmo Rosa' }, image: '' },
+    { id: 129, name: { it: 'Tequila Sunrise' }, price: 12, allergens: [], flavorProfile: ['fruttato', 'dolce', 'tropicale'], description: { it: 'Altos Reposado, succo arancia, granatina' }, image: '' },
+    { id: 130, name: { it: 'Spicy Mango Margarita' }, price: 12, allergens: [], flavorProfile: ['speziato', 'tropicale', 'agrumato', 'fruttato'], description: { it: 'Altos Blanco, succo lime, sciroppo di mango, sciroppo agave, peperoncino' }, image: '' },
+    { id: 131, type: 'subcategory', name: { it: 'Whisky', en: 'Whisky', es: 'Whisky', fr: 'Whisky', de: 'Whisky', zh: '威士忌', ja: 'ウイスキー' } },
+    { id: 132, name: { it: 'Whisky Sour' }, price: 10, allergens: [], flavorProfile: ['agrumato', 'dolce', 'affumicato'], description: { it: "Ballantine's, succo limone, sciroppo zucchero" }, image: '' },
+    { id: 133, name: { it: 'Old Fashioned' }, price: 10, allergens: [], flavorProfile: ['affumicato', 'amaro', 'dolce'], description: { it: 'Four Roses, sciroppo zucchero, Angostura Bitters' }, image: '' },
+    { id: 134, name: { it: 'Jameson Ginger & Lime' }, price: 10, allergens: [], flavorProfile: ['speziato', 'agrumato', 'rinfrescante'], description: { it: 'Jameson, succo lime, SP Ginger Beer, zenzero fresco' }, image: '' },
+    { id: 135, type: 'subcategory', name: { it: 'Varie', en: 'Various', es: 'Varios', fr: 'Divers', de: 'Verschiedenes', zh: '其他', ja: 'その他' } },
+    { id: 136, name: { it: 'Amaretto Sour' }, price: 10, allergens: [], flavorProfile: ['dolce', 'agrumato'], description: { it: 'Amaretto DiSaronno, succo limone, sciroppo zucchero' }, image: '' },
+    { id: 137, name: { it: 'Midori Sour' }, price: 10, allergens: [], flavorProfile: ['dolce', 'fruttato', 'agrumato'], description: { it: 'Midori, succo limone, sciroppo zucchero, SP Acqua Brillante' }, image: '' },
+    { id: 138, name: { it: 'Coco Loco' }, price: 10, allergens: [], flavorProfile: ['tropicale', 'fruttato', 'dolce'], description: { it: 'Malibu, Midori, succo ananas, succo lime' }, image: '' },
+    { id: 139, type: 'subcategory', name: { it: 'Analcolici', en: 'Non-Alcoholic', es: 'Sin alcohol', fr: 'Sans alcool', de: 'Alkoholfrei', zh: '无酒精', ja: 'ノンアルコール' } },
+    { id: 140, name: { it: 'Garden Spritz' }, price: 8, allergens: [], flavorProfile: ['aromatico', 'rinfrescante', 'agrumato'], description: { it: 'Beefeater 0%, SP Acqua Brillante, cetriolo, basilico, succo lime' }, image: '' },
+    { id: 141, name: { it: 'Pepino Fresco' }, price: 8, allergens: [], flavorProfile: ['rinfrescante', 'agrumato', 'erbaceo'], description: { it: 'Beefeater 0%, succo lime, cetriolo pestato, sciroppo zucchero, SP Acqua Brillante' }, image: '' },
+    { id: 142, name: { it: 'Bergamotto Tonic Zero' }, price: 8, allergens: [], flavorProfile: ['agrumato', 'aromatico', 'effervescente'], description: { it: 'Beefeater 0%, Italicus (gocce), Tonica Premium' }, image: '' },
+    { id: 143, name: { it: 'Fiore di Menta' }, price: 8, allergens: [], flavorProfile: ['floreale', 'erbaceo', 'rinfrescante'], description: { it: 'Fior di Bitter Fiero S.Pellegrino, succo lime, menta fresca, sciroppo menta, succo cetriolo' }, image: '' }
+  ],
+  spirits: [
+    { id: 90, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa', zh: '格拉巴酒', ja: 'グラッパ' }, price: 6, allergens: ['sulfites'], image: '' },
+    { id: 91, name: { it: 'Amaro', en: 'Amaro (digestif)', es: 'Amaro (digestivo)', fr: 'Amaro (digestif)', de: 'Amaro (Digestif)', zh: '苦酒（餐后酒）', ja: 'アマーロ（食後酒）' }, price: 5, allergens: [], image: '' },
+    { id: 92, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello', zh: '柠檬酒', ja: 'リモンチェッロ' }, price: 5, allergens: [], image: '' }
+  ]
 };
 
 function App() {
@@ -219,6 +341,7 @@ function App() {
         }
       } catch (error) {
         console.error('Error loading menu:', error);
+        setMenuData(defaultMenu);
       } finally {
         setIsLoading(false);
         document.getElementById('loading').style.display = 'none';
@@ -270,6 +393,7 @@ function App() {
 
   const _isWine = subCategory === 'wine';
   const _isBeer = subCategory === 'beer';
+  const _isCocktail = subCategory === 'cocktails' || subCategory === 'spirits';
 
   const renderSubHeader = (item) => {
     const displayName = item.name[lang] || item.name.it;
@@ -305,10 +429,14 @@ function App() {
           item.volume && e('span', null, item.volume, '% vol'),
           item.volumeCl && e('span', null, item.volumeCl, ' cl')
         ),
+        _isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '4px', fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}, item.description[lang] || item.description.it),
+        item.flavorProfile && item.flavorProfile.length > 0 && e('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }},
+          item.flavorProfile.map(f => e(FlavorTag, { key: f, type: f, lang }))
+        ),
         item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
           item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
         ),
-        !_isWine && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
+        !_isWine && !_isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
           e('button', {
             onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
             style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
