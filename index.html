@@ -784,13 +784,7 @@ function App() {
       key: 'subhdr-' + item.id,
       style: { padding: '10px 16px', borderLeft: '4px solid ' + theme.accent, background: theme.catBg, borderRadius: '0 8px 8px 0', fontSize: '17px', fontWeight: '600', color: theme.accent, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
     },
-      displayName,
-      isAdmin && e('div', { style: { display: 'flex', gap: '6px', alignItems: 'center' }},
-        e('button', { onClick: () => translateSubcategory(item), title: 'Traduci', style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: 'pointer', padding: '2px 6px', fontSize: '14px', lineHeight: 1 }}, '\uD83C\uDF10'),
-        e('button', { onClick: () => moveItem(subCategory, index, -1), disabled: index === 0, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === 0 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1, lineHeight: 1 }}, '\u25B2'),
-        e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC'),
-        e('button', { onClick: () => deleteItem(subCategory, item.id), style: { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}, '\u2716')
-      )
+      displayName
     );
   };
 
@@ -804,10 +798,7 @@ function App() {
         e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, unavailableText[lang] || unavailableText.it)
       ),
       isUnavailable && isAdmin && e('div', { style: { position: 'absolute', top: 0, right: 0, background: '#e53e3e', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '2px 10px', borderBottomLeftRadius: '8px', zIndex: 2 }}, 'NON DISP.'),
-      isAdmin && e('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px', alignSelf: 'center' }},
-        e('button', { onClick: () => moveItem(subCategory, index, -1), disabled: index === 0, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === 0 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === 0 ? 0.3 : 1, lineHeight: 1 }}, '\u25B2'),
-        e('button', { onClick: () => moveItem(subCategory, index, 1), disabled: index === currentItems.length - 1, style: { background: 'none', border: '1px solid #cbd5e0', borderRadius: '4px', cursor: index === currentItems.length - 1 ? 'default' : 'pointer', padding: '2px 6px', fontSize: '14px', opacity: index === currentItems.length - 1 ? 0.3 : 1, lineHeight: 1 }}, '\u25BC')
-      ),
+      null,
       _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       _isBeer && item.serving && e('img', { src: 'icons/beer-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
@@ -849,15 +840,7 @@ function App() {
           e('button', {
             onClick: () => toggleUnavailable(item.id),
             style: { background: isUnavailable ? '#38a169' : '#dd6b20', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
-          }, isUnavailable ? ('\u2705 ' + ({it:'Disponibile',en:'Available',es:'Disponible',fr:'Disponible',de:'Verf\u00FCgbar',zh:'\u53EF\u4F9B\u5E94',ja:'\u63D0\u4F9B\u53EF'}[lang] || 'Disponibile')) : ('\u26D4 ' + (unavailableText[lang] || unavailableText.it))),
-          e('button', {
-            onClick: () => { setEditItem(item); setShowEditModal(true); },
-            style: { background: '#3182ce', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
-          }, '\u270F\uFE0F Modifica'),
-          e('button', {
-            onClick: () => deleteItem(subCategory, item.id),
-            style: { background: '#e53e3e', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }
-          }, '\uD83D\uDDD1\uFE0F Elimina')
+          }, isUnavailable ? ('\u2705 ' + ({it:'Disponibile',en:'Available',es:'Disponible',fr:'Disponible',de:'Verf\u00FCgbar',zh:'\u53EF\u4F9B\u5E94',ja:'\u63D0\u4F9B\u53EF'}[lang] || 'Disponibile')) : ('\u26D4 ' + (unavailableText[lang] || unavailableText.it)))
         )
       )
     );
@@ -866,13 +849,17 @@ function App() {
   return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
     showSpecials && e(SpecialsPopup, { specials, lang, onClose: () => setShowSpecials(false) }),
     showPinModal && e(PinModal, { pin, setPin, onSubmit: checkPin, onClose: () => { setShowPinModal(false); setPin(''); }}),
-    showEditModal && editItem && e(EditModal, { item: editItem, lang, onSave: saveEditItem, onClose: () => { setShowEditModal(false); setEditItem(null); }, isBarCat: barCats.includes(subCategory), currentCategory: subCategory }),
-    showAddModal && e(AddModal, { lang, onSave: addNewItem, onClose: () => setShowAddModal(false), isBarCat: barCats.includes(subCategory), currentCategory: subCategory }),
+    null,
+    null,
     showEditSpecials && e(EditSpecialsModal, { specials, lang, onSave: saveSpecials, onClose: () => setShowEditSpecials(false) }),
     
     e('header', { style: { background: theme.header, padding: scrolled ? '0px' : '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', transition: 'padding 0.25s ease', overflow: 'hidden', maxHeight: scrolled ? '0px' : '200px' }},
       e('img', { src: isSunday ? 'sunday_logo.png' : 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }}),
       isAdmin && e('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }},
+        e('a', {
+          href: 'menu_manager.html',
+          style: { background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }
+        }, '📋 Gestione Menu'),
         e('button', {
           onClick: () => setShowEditSpecials(true),
           style: { background: '#2d3748', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', fontSize: '12px' }
@@ -951,17 +938,7 @@ function App() {
 
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }},
-        e('h2', { style: { margin: 0, color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
-        isAdmin && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap' }},
-          e('button', {
-            onClick: () => setShowAddModal(true),
-            style: { background: '#38a169', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
-          }, '+ ', lang === 'it' ? 'Aggiungi' : 'Add'),
-          barCats.includes(subCategory) && e('button', {
-            onClick: () => { const name = prompt(lang === 'it' ? 'Nome sottocategoria:' : 'Subcategory name:'); if (name && name.trim()) { addSubcategory(name.trim()); } },
-            style: { background: '#6b46c1', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }
-          }, '+ ', lang === 'it' ? 'Sottocategoria' : 'Subcategory')
-        )
+        e('h2', { style: { margin: 0, color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory)
       ),
 
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},

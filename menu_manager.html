@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Manager - Borgo della Mistica</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .pin-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #1a1a2e, #2d3748); }
+    .pin-screen img { height: 60px; margin-bottom: 24px; }
+    .pin-screen h2 { color: #fff; margin-bottom: 16px; font-size: 18px; }
+    .pin-screen input { padding: 12px 20px; border: 2px solid #4a5568; border-radius: 8px; background: #2d3748; color: #fff; font-size: 20px; text-align: center; letter-spacing: 8px; width: 200px; outline: none; }
+    .pin-screen input:focus { border-color: #ca4d4f; }
+    .pin-screen button { margin-top: 12px; padding: 10px 32px; background: #ca4d4f; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .pin-screen .error { color: #fc8181; font-size: 13px; margin-top: 8px; }
+    .header { background: linear-gradient(135deg, #ca4d4f 0%, #a03032 100%); color: #fff; padding: 10px 20px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+    .header h1 { font-size: 18px; font-weight: 600; flex-shrink: 0; }
+    .header-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; }
+    .header-actions button, .header-actions a { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-mode { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3) !important; }
+    .btn-mode.active { background: #fff; color: #ca4d4f; }
+    .btn-save { background: #38a169; color: #fff; }
+    .btn-save:disabled { opacity: 0.4; cursor: default; }
+    .btn-back { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn-logout { background: rgba(255,255,255,0.1); color: #fff; }
+    .status { font-size: 11px; color: rgba(255,255,255,0.8); padding: 2px 8px; }
+    .tabs { display: flex; background: #fff; border-bottom: 2px solid #e2e8f0; padding: 0 12px; overflow-x: auto; position: sticky; top: 48px; z-index: 99; }
+    .tab { padding: 10px 16px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; white-space: nowrap; }
+    .tab:hover { color: #333; }
+    .tab.active { color: #ca4d4f; border-bottom-color: #ca4d4f; font-weight: 700; }
+    .content { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .item-card { background: #fff; border-radius: 8px; padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .item-card:hover { border-color: #cbd5e0; }
+    .item-card.subcategory { background: #f7fafc; border-left: 4px solid #ca4d4f; }
+    .item-card .drag-col { display: flex; flex-direction: column; gap: 2px; }
+    .item-card .drag-col button { background: none; border: 1px solid #cbd5e0; border-radius: 3px; cursor: pointer; padding: 1px 5px; font-size: 11px; line-height: 1; color: #718096; }
+    .item-card .drag-col button:hover { background: #edf2f7; }
+    .item-card .drag-col button:disabled { opacity: 0.2; cursor: default; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 14px; font-weight: 500; }
+    .item-name.sub { color: #ca4d4f; font-weight: 600; }
+    .item-desc { font-size: 11px; color: #a0aec0; margin-top: 2px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+    .item-tags .tag { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+    .item-price { font-size: 16px; font-weight: 600; color: #ca4d4f; white-space: nowrap; min-width: 55px; text-align: right; }
+    .item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .item-actions button { padding: 4px 8px; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .item-actions button:hover { background: #f7fafc; }
+    .item-actions .btn-del { color: #e53e3e; border-color: #fed7d7; }
+    .item-actions .btn-del:hover { background: #fff5f5; }
+    .add-bar { display: flex; gap: 8px; margin-top: 12px; padding: 12px; background: #fff; border-radius: 8px; border: 2px dashed #cbd5e0; justify-content: center; }
+    .add-bar button { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .add-bar .btn-add { background: #ca4d4f; color: #fff; }
+    .add-bar .btn-sub { background: #4a5568; color: #fff; }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+    .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-header { padding: 16px 20px; background: #f7fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; position: sticky; top: 0; z-index: 1; }
+    .modal-header h3 { font-size: 16px; }
+    .modal-header button { background: none; border: none; font-size: 20px; cursor: pointer; color: #a0aec0; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: #fff; border-radius: 0 0 12px 12px; }
+    .modal-footer button { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .modal-footer .btn-save { background: #38a169; color: #fff; }
+    .modal-footer .btn-cancel { background: #e2e8f0; color: #4a5568; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 4px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #ca4d4f; }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .lang-grid { display: grid; grid-template-columns: 30px 1fr; gap: 4px 8px; align-items: center; }
+    .lang-grid .flag { font-size: 16px; text-align: center; }
+    .allergen-grid, .flavor-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .allergen-grid label, .flavor-grid label { display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 6px; }
+    .allergen-grid label:has(input:checked) { background: #ebf8ff; border-color: #3182ce; }
+    .flavor-grid label:has(input:checked) { background: #fef5e7; border-color: #d69e2e; }
+    .allergen-grid input, .flavor-grid input { display: none; }
+    .translate-btn { padding: 4px 10px; background: #edf2f7; border: 1px solid #cbd5e0; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; color: #4a5568; }
+    .translate-btn:hover { background: #e2e8f0; }
+    .transfer-section { background: #fff; border-radius: 8px; padding: 16px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .transfer-section h4 { font-size: 13px; color: #4a5568; margin-bottom: 8px; }
+    .transfer-section button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 8px; }
+    .item-count { font-size: 12px; color: #a0aec0; text-align: center; padding: 8px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script>
+const e = React.createElement;
+const { useState, useEffect, useCallback, useRef } = React;
+
+const _c = s => atob(s);
+const SUPABASE_URL = _c('aHR0cHM6Ly9yem1zY3lwdHBrZmg=') + _c('YmF0aW91cWsuc3VwYWJhc2UuY28=');
+const SUPABASE_KEY = _c('c2JfcHVibGlzaGFibGVf') + _c('X3hXdEVHZjF5dkVqdDhn') + _c('eV9SR1ZfZ18tT2tMR2tjWA==');
+const PIN_HASH = '8beedb9068239aa2e47b1d31c551e5cd5ce5fb1daad51479a136a2af677e06ed';
+
+const CATS = [
+  { key: 'appetizers', it: 'Antipasti' }, { key: 'primi', it: 'Primi' }, { key: 'secondi', it: 'Secondi' },
+  { key: 'contorni', it: 'Contorni' }, { key: 'dessert', it: 'Dolci' },
+  { key: 'softdrinks', it: 'Bevande' }, { key: 'wine', it: 'Vini' }, { key: 'beer', it: 'Birre' },
+  { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Liquori' }
+];
+const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+const LANGS = ['it', 'en', 'es', 'fr', 'de', 'zh', 'ja'];
+const FLAGS = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷', de: '🇩🇪', zh: '🇨🇳', ja: '🇯🇵' };
+
+const ALLERGENS = {
+  celery: 'Sedano', gluten: 'Glutine', crustaceans: 'Crostacei', eggs: 'Uova', fish: 'Pesce',
+  lupin: 'Lupini', dairy: 'Latticini', molluscs: 'Molluschi', mustard: 'Senape', nuts: 'Frutta a guscio',
+  peanuts: 'Arachidi', sesame: 'Sesamo', sulfites: 'Solfiti', soy: 'Soia', vegetarian: 'Vegetariano', pork: 'Maiale'
+};
+const FLAVOR_PROFILES = {
+  arancio: { color: '#e67e22', it: 'Arancio' }, agrumato: { color: '#f39c12', it: 'Agrumato' },
+  amaro: { color: '#c0392b', it: 'Amaro' }, dolce: { color: '#f1c40f', it: 'Dolce' },
+  effervescente: { color: '#3498db', it: 'Effervescente' }, floreale: { color: '#e91e63', it: 'Floreale' },
+  aromatico: { color: '#9b59b6', it: 'Aromatico' }, erbaceo: { color: '#27ae60', it: 'Erbaceo' },
+  rinfrescante: { color: '#1abc9c', it: 'Rinfrescante' }, affumicato: { color: '#7f8c8d', it: 'Affumicato' },
+  speziato: { color: '#d35400', it: 'Speziato' }, fruttato: { color: '#e74c3c', it: 'Fruttato' },
+  cremoso: { color: '#d4a574', it: 'Cremoso' }, caffe: { color: '#795548', it: 'Caffè' },
+  tropicale: { color: '#00bcd4', it: 'Tropicale' }
+};
+
+const emptyLangs = () => ({ it: '', en: '', es: '', fr: '', de: '', zh: '', ja: '' });
+
+// --- PIN SCREEN ---
+const PinScreen = ({ onAuth }) => {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const check = async () => {
+    const enc = new TextEncoder();
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(pin)))).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hash === PIN_HASH) onAuth(hash);
+    else { setError('PIN errato'); setPin(''); }
+  };
+  return e('div', { className: 'pin-screen' },
+    e('img', { src: 'logo.png', alt: 'Logo' }),
+    e('h2', null, 'Menu Manager'),
+    e('input', { type: 'password', value: pin, onChange: ev => setPin(ev.target.value), onKeyDown: ev => ev.key === 'Enter' && check(), placeholder: '••••', autoFocus: true }),
+    e('button', { onClick: check }, 'Accedi'),
+    error && e('div', { className: 'error' }, error)
+  );
+};
+
+// --- EDIT MODAL ---
+const EditModal = ({ item, cat, onSave, onClose }) => {
+  const [f, setF] = useState(JSON.parse(JSON.stringify(item)));
+  const [translating, setTranslating] = useState(false);
+  const isBar = BAR_CATS.includes(cat);
+  const isCocktail = cat === 'cocktails' || cat === 'spirits';
+  const isSub = f.type === 'subcategory';
+  const isWine = cat === 'wine';
+  const isBeer = cat === 'beer';
+
+  const setName = (lang, val) => setF(p => ({ ...p, name: { ...p.name, [lang]: val } }));
+  const setDesc = (lang, val) => setF(p => ({ ...p, description: { ...(p.description || emptyLangs()), [lang]: val } }));
+  const toggleAllergen = a => setF(p => ({ ...p, allergens: (p.allergens || []).includes(a) ? p.allergens.filter(x => x !== a) : [...(p.allergens || []), a] }));
+  const toggleFlavor = fl => setF(p => ({ ...p, flavorProfile: (p.flavorProfile || []).includes(fl) ? p.flavorProfile.filter(x => x !== fl) : [...(p.flavorProfile || []), fl] }));
+
+  const autoTranslate = async (field) => {
+    const itText = field === 'name' ? f.name.it : (f.description || {}).it;
+    if (!itText || !itText.trim()) return alert('Inserisci prima il testo in italiano');
+    setTranslating(true);
+    try {
+      const res = await fetch(SUPABASE_URL + '/functions/v1/translate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ texts: [{ text: itText, id: field }], context: 'food_menu' })
+      });
+      const data = await res.json();
+      if (data.results && data.results[field]) {
+        const tr = data.results[field];
+        if (field === 'name') setF(p => ({ ...p, name: { ...p.name, ...tr, it: p.name.it } }));
+        else setF(p => ({ ...p, description: { ...(p.description || {}), ...tr, it: (p.description || {}).it } }));
+      }
+    } catch (err) { alert('Errore traduzione: ' + err.message); }
+    setTranslating(false);
+  };
+
+  return e('div', { className: 'modal-overlay', onClick: ev => ev.target === ev.currentTarget && onClose() },
+    e('div', { className: 'modal' },
+      e('div', { className: 'modal-header' },
+        e('h3', null, isSub ? 'Modifica Sottocategoria' : 'Modifica Elemento'),
+        e('button', { onClick: onClose }, '✕')
+      ),
+      e('div', { className: 'modal-body' },
+        // Name
+        e('div', { className: 'form-group' },
+          e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } },
+            e('label', null, 'Nome'),
+            e('button', { className: 'translate-btn', onClick: () => autoTranslate('name'), disabled: translating }, translating ? '...' : '🌐 Traduci')
+          ),
+          e('div', { className: 'lang-grid' },
+            ...LANGS.flatMap(l => [
+              e('span', { className: 'flag', key: 'f-' + l }, FLAGS[l]),
+              e('input', { key: 'n-' + l, value: f.name[l] || '', onChange: ev => setName(l, ev.target.value), placeholder: l === 'it' ? 'Nome italiano *' : l.toUpperCase(), style: l === 'it' ? { fontWeight: 600, borderColor: '#ca4d4f' } : {} })
+            ])
+          )
+        ),
+        // Price (not for subcategories)
+        !isSub && e('div', { className: 'form-group' },
+          e('label', null, 'Prezzo (€)'),
+          e('input', { type: 'number', step: '0.5', value: f.price || 0, onChange: ev => setF(p => ({ ...p, price: parseFloat(ev.target.value) || 0 })), style: { width: 120 } })
+        ),
+        // Description
+        !isSub && e('div', { className: 'form-group' },
+          e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } },
+            e('label', null, isCocktail ? 'Ingredienti' : 'Descrizione'),
+            e('button', { className: 'translate-btn', onClick: () => autoTranslate('description'), disabled: translating }, translating ? '...' : '🌐 Traduci')
+          ),
+          e('div', { className: 'lang-grid' },
+            ...LANGS.flatMap(l => [
+              e('span', { className: 'flag', key: 'df-' + l }, FLAGS[l]),
+              e('textarea', { key: 'd-' + l, rows: isCocktail ? 1 : 2, value: (f.description || {})[l] || '', onChange: ev => setDesc(l, ev.target.value), placeholder: l === 'it' ? (isCocktail ? 'Ingredienti *' : 'Descrizione italiana') : l.toUpperCase() })
+            ])
+          )
+        ),
+        // Image
+        !isSub && e('div', { className: 'form-group' },
+          e('label', null, 'URL Immagine'),
+          e('input', { value: f.image || '', onChange: ev => setF(p => ({ ...p, image: ev.target.value })) })
+        ),
+        // Allergens
+        !isSub && !isCocktail && e('div', { className: 'form-group' },
+          e('label', null, 'Allergeni'),
+          e('div', { className: 'allergen-grid' },
+            ...Object.entries(ALLERGENS).map(([k, v]) =>
+              e('label', { key: k },
+                e('input', { type: 'checkbox', checked: (f.allergens || []).includes(k), onChange: () => toggleAllergen(k) }), v
+              )
+            )
+          )
+        ),
+        // Flavor Profiles (cocktails)
+        !isSub && isCocktail && e('div', { className: 'form-group' },
+          e('label', null, 'Profilo Aromatico'),
+          e('div', { className: 'flavor-grid' },
+            ...Object.entries(FLAVOR_PROFILES).map(([k, v]) =>
+              e('label', { key: k, style: { borderColor: (f.flavorProfile || []).includes(k) ? v.color : '#e2e8f0', color: (f.flavorProfile || []).includes(k) ? v.color : '#4a5568' } },
+                e('input', { type: 'checkbox', checked: (f.flavorProfile || []).includes(k), onChange: () => toggleFlavor(k) }), v.it
+              )
+            )
+          )
+        ),
+        // Wine fields
+        !isSub && isWine && e(React.Fragment, null,
+          e('div', { className: 'form-group' }, e('label', null, 'Cantina'), e('input', { value: f.cantina || '', onChange: ev => setF(p => ({ ...p, cantina: ev.target.value })) })),
+          e('div', { className: 'form-group' }, e('label', null, 'Regione'), e('input', { value: f.regione || '', onChange: ev => setF(p => ({ ...p, regione: ev.target.value })) })),
+          e('div', { style: { display: 'flex', gap: 12 } },
+            e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Vol %'), e('input', { value: f.volume || '', onChange: ev => setF(p => ({ ...p, volume: ev.target.value })) })),
+            e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Formato'), e('select', { value: f.serving || '', onChange: ev => setF(p => ({ ...p, serving: ev.target.value })), style: { width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13 } }, e('option', { value: '' }, '—'), e('option', { value: 'glass' }, 'Calice'), e('option', { value: 'bottle' }, 'Bottiglia')))
+          )
+        ),
+        // Beer fields
+        !isSub && isBeer && e('div', { style: { display: 'flex', gap: 12 } },
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Vol %'), e('input', { value: f.volume || '', onChange: ev => setF(p => ({ ...p, volume: ev.target.value })) })),
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'cl'), e('input', { value: f.volumeCl || '', onChange: ev => setF(p => ({ ...p, volumeCl: ev.target.value })) })),
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Formato'), e('select', { value: f.serving || '', onChange: ev => setF(p => ({ ...p, serving: ev.target.value })), style: { width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13 } }, e('option', { value: '' }, '—'), e('option', { value: 'bottle' }, 'Bottiglia'), e('option', { value: 'draft' }, 'Spina')))
+        )
+      ),
+      e('div', { className: 'modal-footer' },
+        e('button', { className: 'btn-cancel', onClick: onClose }, 'Annulla'),
+        e('button', { className: 'btn-save', onClick: () => onSave(f) }, 'Salva')
+      )
+    )
+  );
+};
+
+// --- MAIN APP ---
+const App = () => {
+  const [authed, setAuthed] = useState(false);
+  const [pinHash, setPinHash] = useState('');
+  const [menuData, setMenuData] = useState(null);
+  const [specials, setSpecials] = useState({});
+  const [mode, setMode] = useState('default'); // 'default' or 'sunday'
+  const [cat, setCat] = useState('appetizers');
+  const [editItem, setEditItem] = useState(null);
+  const [addMode, setAddMode] = useState(false); // false, 'item', 'subcategory'
+  const [status, setStatus] = useState('');
+  const [dirty, setDirty] = useState(false);
+
+  // Load data
+  useEffect(() => {
+    if (!authed) return;
+    fetch(SUPABASE_URL + '/rest/v1/menu_data?id=eq.main&select=*', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    }).then(r => r.json()).then(d => {
+      if (d[0]) { setMenuData(d[0].menu); setSpecials(d[0].specials || {}); setStatus('✓ Caricato'); }
+    }).catch(err => setStatus('❌ Errore caricamento'));
+  }, [authed]);
+
+  if (!authed) return e(PinScreen, { onAuth: h => { setAuthed(true); setPinHash(h); } });
+  if (!menuData) return e('div', { style: { padding: 40, textAlign: 'center', color: '#718096' } }, 'Caricamento...');
+
+  const menu = menuData[mode] || {};
+  const items = menu[cat] || [];
+
+  const getMaxId = () => {
+    let maxId = 0;
+    ['default', 'sunday'].forEach(m => {
+      const md = menuData[m] || {};
+      CATS.forEach(c => (md[c.key] || []).forEach(i => { if (typeof i.id === 'number' && i.id > maxId) maxId = i.id; }));
+    });
+    return maxId;
+  };
+
+  const updateItems = (newItems) => {
+    const newMenu = { ...menuData, [mode]: { ...menuData[mode], [cat]: newItems } };
+    setMenuData(newMenu);
+    setDirty(true);
+    setStatus('● Modifiche non salvate');
+  };
+
+  const saveToSupabase = async () => {
+    setStatus('💾 Salvando...');
+    try {
+      const res = await fetch(SUPABASE_URL + '/functions/v1/save-menu', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ menu: menuData, specials, pinHash })
+      });
+      const data = await res.json();
+      if (data.success) { setDirty(false); setStatus('✅ Salvato!'); }
+      else setStatus('❌ Errore: ' + (data.error || 'unknown'));
+    } catch (err) { setStatus('❌ ' + err.message); }
+  };
+
+  const deleteItem = (id) => {
+    if (!confirm('Eliminare questo elemento?')) return;
+    updateItems(items.filter(i => i.id !== id));
+  };
+
+  const moveItem = (index, dir) => {
+    const newItems = [...items];
+    const target = index + dir;
+    if (target < 0 || target >= newItems.length) return;
+    [newItems[index], newItems[target]] = [newItems[target], newItems[index]];
+    updateItems(newItems);
+  };
+
+  const saveEdit = (updated) => {
+    updateItems(items.map(i => i.id === updated.id ? updated : i));
+    setEditItem(null);
+  };
+
+  const addItem = (item) => {
+    item.id = getMaxId() + 1;
+    updateItems([...items, item]);
+    setAddMode(false);
+  };
+
+  const addSubcategory = () => {
+    const name = prompt('Nome sottocategoria (italiano):');
+    if (!name || !name.trim()) return;
+    const newSub = { id: getMaxId() + 1, type: 'subcategory', name: { it: name.trim() } };
+    updateItems([...items, newSub]);
+    // Auto-translate
+    fetch(SUPABASE_URL + '/functions/v1/translate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ texts: [{ text: name.trim(), id: 'sub' }] })
+    }).then(r => r.json()).then(data => {
+      if (data.results && data.results.sub) {
+        const translated = { it: name.trim(), ...data.results.sub };
+        updateItems((menuData[mode][cat] || []).map(i => i.id === newSub.id ? { ...i, name: translated } : i));
+      }
+    }).catch(() => {});
+  };
+
+  // Transfer items between modes
+  const transferItems = (fromMode, toMode) => {
+    const fromMenu = menuData[fromMode] || {};
+    const toMenu = menuData[toMode] || {};
+    const fromItems = (fromMenu[cat] || []).filter(i => i.type !== 'subcategory');
+    const toItems = toMenu[cat] || [];
+    const toNames = new Set(toItems.filter(i => i.type !== 'subcategory').map(i => (i.name.it || '').toLowerCase().trim()));
+    let maxId = getMaxId();
+    const toAdd = fromItems.filter(i => !toNames.has((i.name.it || '').toLowerCase().trim()));
+    if (toAdd.length === 0) return alert('Tutti gli elementi esistono già nel menu di destinazione');
+    const copies = toAdd.map(i => ({ ...JSON.parse(JSON.stringify(i)), id: ++maxId }));
+    const newMenu = { ...menuData, [toMode]: { ...menuData[toMode], [cat]: [...toItems, ...copies] } };
+    setMenuData(newMenu);
+    setDirty(true);
+    setStatus(`✓ ${copies.length} elementi copiati`);
+  };
+
+  const nonSubCount = items.filter(i => i.type !== 'subcategory').length;
+  const otherMode = mode === 'default' ? 'sunday' : 'default';
+  const otherCount = ((menuData[otherMode] || {})[cat] || []).filter(i => i.type !== 'subcategory').length;
+
+  return e('div', null,
+    // Header
+    e('div', { className: 'header' },
+      e('h1', null, '📋 Menu Manager'),
+      e('div', { className: 'header-actions' },
+        e('button', { className: 'btn-mode' + (mode === 'default' ? ' active' : ''), onClick: () => setMode('default') }, 'Borgo'),
+        e('button', { className: 'btn-mode' + (mode === 'sunday' ? ' active' : ''), onClick: () => setMode('sunday') }, 'Hotel'),
+        e('span', { className: 'status' }, status),
+        e('button', { className: 'btn-save', onClick: saveToSupabase, disabled: !dirty }, '💾 Salva'),
+        e('a', { className: 'btn-back', href: 'index.html' }, '← Menu'),
+        e('button', { className: 'btn-logout', onClick: () => { setAuthed(false); setPinHash(''); } }, '🔓')
+      )
+    ),
+    // Category tabs
+    e('div', { className: 'tabs' },
+      ...CATS.map(c => e('button', {
+        key: c.key, className: 'tab' + (cat === c.key ? ' active' : ''),
+        onClick: () => setCat(c.key)
+      }, c.it, ' (', ((menuData[mode] || {})[c.key] || []).filter(i => i.type !== 'subcategory').length, ')'))
+    ),
+    // Content
+    e('div', { className: 'content' },
+      // Item list
+      items.length === 0 && e('div', { className: 'item-count' }, 'Nessun elemento in questa categoria'),
+      ...items.map((item, idx) => {
+        const isSub = item.type === 'subcategory';
+        return e('div', { key: item.id, className: 'item-card' + (isSub ? ' subcategory' : '') },
+          // Reorder arrows
+          e('div', { className: 'drag-col' },
+            e('button', { onClick: () => moveItem(idx, -1), disabled: idx === 0 }, '▲'),
+            e('button', { onClick: () => moveItem(idx, 1), disabled: idx === items.length - 1 }, '▼')
+          ),
+          // Info
+          e('div', { className: 'item-info' },
+            e('div', { className: 'item-name' + (isSub ? ' sub' : '') }, isSub ? ('📂 ' + (item.name.it || '')) : (item.name.it || '???')),
+            !isSub && item.description && item.description.it && e('div', { className: 'item-desc' }, item.description.it),
+            !isSub && e('div', { className: 'item-tags' },
+              ...(item.allergens || []).map(a => e('span', { key: a, className: 'tag', style: { background: '#ebf8ff', color: '#2b6cb0', border: '1px solid #bee3f8' } }, ALLERGENS[a] || a)),
+              ...(item.flavorProfile || []).map(f => {
+                const fp = FLAVOR_PROFILES[f];
+                return fp ? e('span', { key: f, className: 'tag', style: { color: fp.color, background: fp.color + '18', border: '1px solid ' + fp.color + '40' } }, fp.it) : null;
+              })
+            )
+          ),
+          // Price
+          !isSub && e('div', { className: 'item-price' }, '€' + (item.price || 0).toFixed(2)),
+          // Actions
+          e('div', { className: 'item-actions' },
+            e('button', { onClick: () => setEditItem(item), title: 'Modifica' }, '✏️'),
+            e('button', { className: 'btn-del', onClick: () => deleteItem(item.id), title: 'Elimina' }, '🗑️')
+          )
+        );
+      }),
+      // Add bar
+      e('div', { className: 'add-bar' },
+        e('button', { className: 'btn-add', onClick: () => { setAddMode('item'); setEditItem({ name: emptyLangs(), description: emptyLangs(), price: 0, allergens: [], image: '', flavorProfile: [] }); } }, '+ Aggiungi Elemento'),
+        BAR_CATS.includes(cat) && e('button', { className: 'btn-sub', onClick: addSubcategory }, '+ Sottocategoria')
+      ),
+      // Transfer section
+      e('div', { className: 'transfer-section' },
+        e('h4', null, 'Trasferisci elementi — ', cat, ' (', mode === 'default' ? 'Borgo' : 'Hotel', ': ', nonSubCount, ' | ', mode === 'default' ? 'Hotel' : 'Borgo', ': ', otherCount, ')'),
+        e('button', { style: { background: mode === 'default' ? '#d4842a' : '#ca4d4f', color: '#fff' }, onClick: () => transferItems(mode, otherMode) },
+          '→ Copia nuovi in ', otherMode === 'default' ? 'Borgo' : 'Hotel'
+        ),
+        e('button', { style: { background: mode === 'default' ? '#ca4d4f' : '#d4842a', color: '#fff' }, onClick: () => transferItems(otherMode, mode) },
+          '← Importa da ', otherMode === 'default' ? 'Borgo' : 'Hotel'
+        )
+      ),
+      // Item count
+      e('div', { className: 'item-count' }, nonSubCount, ' elementi | ', items.filter(i => i.type === 'subcategory').length, ' sottocategorie')
+    ),
+    // Edit modal
+    editItem && !addMode && e(EditModal, { item: editItem, cat, onSave: saveEdit, onClose: () => setEditItem(null) }),
+    // Add modal (reuse EditModal)
+    editItem && addMode === 'item' && e(EditModal, { item: editItem, cat, onSave: addItem, onClose: () => { setAddMode(false); setEditItem(null); } })
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(e(App));
+</script>
+</body>
+</html>
