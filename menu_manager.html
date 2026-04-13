@@ -81,6 +81,22 @@
     .transfer-section { background: #fff; border-radius: 8px; padding: 16px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
     .transfer-section h4 { font-size: 13px; color: #4a5568; margin-bottom: 8px; }
     .transfer-section button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; margin-right: 8px; }
+    .transfer-dir { display: flex; gap: 0; margin-bottom: 10px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e0; }
+    .transfer-dir button { flex: 1; padding: 8px; border: none; background: #f7fafc; color: #4a5568; font-size: 12px; font-weight: 600; cursor: pointer; margin: 0; border-radius: 0; }
+    .transfer-dir button.active { background: #4a5568; color: #fff; }
+    .transfer-list { max-height: 260px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; }
+    .transfer-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; cursor: pointer; }
+    .transfer-item:last-child { border-bottom: none; }
+    .transfer-item:hover { background: #f7fafc; }
+    .transfer-item.exists { color: #a0aec0; }
+    .transfer-item input[type=checkbox] { accent-color: #ca4d4f; width: 16px; height: 16px; cursor: pointer; }
+    .transfer-item .t-name { flex: 1; }
+    .transfer-item .t-price { font-weight: 600; color: #ca4d4f; font-size: 12px; }
+    .transfer-item .t-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+    .transfer-item .t-badge.new { background: #c6f6d5; color: #276749; }
+    .transfer-item .t-badge.dup { background: #fed7d7; color: #9b2c2c; }
+    .transfer-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .transfer-bar .sel-count { font-size: 12px; color: #718096; margin-left: auto; }
     .item-count { font-size: 12px; color: #a0aec0; text-align: center; padding: 8px; }
   </style>
 </head>
@@ -290,6 +306,8 @@ const App = () => {
   const [addMode, setAddMode] = useState(false); // false, 'item', 'subcategory'
   const [status, setStatus] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [transferFlags, setTransferFlags] = useState({});
+  const [transferDir, setTransferDir] = useState('push'); // 'push' = current→other, 'pull' = other→current
 
   // Load data
   useEffect(() => {
@@ -382,25 +400,43 @@ const App = () => {
     }).catch(() => {});
   };
 
-  // Transfer items between modes
-  const transferItems = (fromMode, toMode) => {
-    const fromMenu = menuData[fromMode] || {};
-    const toMenu = menuData[toMode] || {};
-    const fromItems = (fromMenu[cat] || []).filter(i => i.type !== 'subcategory');
-    const toItems = toMenu[cat] || [];
-    const toNames = new Set(toItems.filter(i => i.type !== 'subcategory').map(i => (i.name.it || '').toLowerCase().trim()));
+  const otherMode = mode === 'default' ? 'sunday' : 'default';
+
+  // Transfer: reset flags when mode/cat changes
+  useEffect(() => { setTransferFlags({}); setTransferDir('push'); }, [mode, cat]);
+
+  // Transfer helpers
+  const getTransferData = () => {
+    const fromMode = transferDir === 'push' ? mode : otherMode;
+    const toMode = transferDir === 'push' ? otherMode : mode;
+    const fromItems = ((menuData[fromMode] || {})[cat] || []).filter(i => i.type !== 'subcategory');
+    const toNames = new Set(((menuData[toMode] || {})[cat] || []).filter(i => i.type !== 'subcategory').map(i => (i.name.it || '').toLowerCase().trim()));
+    return { fromMode, toMode, fromItems, toNames };
+  };
+
+  const toggleFlag = (id) => setTransferFlags(prev => ({ ...prev, [id]: !prev[id] }));
+  const selectAllNew = () => {
+    const { fromItems, toNames } = getTransferData();
+    const flags = {};
+    fromItems.forEach(i => { if (!toNames.has((i.name.it || '').toLowerCase().trim())) flags[i.id] = true; });
+    setTransferFlags(flags);
+  };
+  const selectNone = () => setTransferFlags({});
+
+  const transferSelected = () => {
+    const { fromMode, toMode, fromItems, toNames } = getTransferData();
+    const selected = fromItems.filter(i => transferFlags[i.id]);
+    if (selected.length === 0) return alert('Seleziona almeno un elemento');
+    const toItems = (menuData[toMode] || {})[cat] || [];
     let maxId = getMaxId();
-    const toAdd = fromItems.filter(i => !toNames.has((i.name.it || '').toLowerCase().trim()));
-    if (toAdd.length === 0) return alert('Tutti gli elementi esistono già nel menu di destinazione');
-    const copies = toAdd.map(i => ({ ...JSON.parse(JSON.stringify(i)), id: ++maxId }));
-    const newMenu = { ...menuData, [toMode]: { ...menuData[toMode], [cat]: [...toItems, ...copies] } };
-    setMenuData(newMenu);
+    const copies = selected.map(i => ({ ...JSON.parse(JSON.stringify(i)), id: ++maxId }));
+    setMenuData({ ...menuData, [toMode]: { ...menuData[toMode], [cat]: [...toItems, ...copies] } });
     setDirty(true);
+    setTransferFlags({});
     setStatus(`✓ ${copies.length} elementi copiati`);
   };
 
   const nonSubCount = items.filter(i => i.type !== 'subcategory').length;
-  const otherMode = mode === 'default' ? 'sunday' : 'default';
   const otherCount = ((menuData[otherMode] || {})[cat] || []).filter(i => i.type !== 'subcategory').length;
 
   return e('div', null,
@@ -462,16 +498,43 @@ const App = () => {
         e('button', { className: 'btn-add', onClick: () => { setAddMode('item'); setEditItem({ name: emptyLangs(), description: emptyLangs(), price: 0, allergens: [], image: '', flavorProfile: [] }); } }, '+ Aggiungi Elemento'),
         BAR_CATS.includes(cat) && e('button', { className: 'btn-sub', onClick: addSubcategory }, '+ Sottocategoria')
       ),
-      // Transfer section
-      e('div', { className: 'transfer-section' },
-        e('h4', null, 'Trasferisci elementi — ', cat, ' (', mode === 'default' ? 'Borgo' : 'Hotel', ': ', nonSubCount, ' | ', mode === 'default' ? 'Hotel' : 'Borgo', ': ', otherCount, ')'),
-        e('button', { style: { background: mode === 'default' ? '#d4842a' : '#ca4d4f', color: '#fff' }, onClick: () => transferItems(mode, otherMode) },
-          '→ Copia nuovi in ', otherMode === 'default' ? 'Borgo' : 'Hotel'
-        ),
-        e('button', { style: { background: mode === 'default' ? '#ca4d4f' : '#d4842a', color: '#fff' }, onClick: () => transferItems(otherMode, mode) },
-          '← Importa da ', otherMode === 'default' ? 'Borgo' : 'Hotel'
-        )
-      ),
+      // Transfer section with flag selector
+      (() => {
+        const td = getTransferData();
+        const selectedCount = td.fromItems.filter(i => transferFlags[i.id]).length;
+        const fromLabel = (transferDir === 'push' ? mode : otherMode) === 'default' ? 'Borgo' : 'Hotel';
+        const toLabel = (transferDir === 'push' ? otherMode : mode) === 'default' ? 'Borgo' : 'Hotel';
+        return e('div', { className: 'transfer-section' },
+          e('h4', null, 'Trasferisci elementi — ', cat),
+          e('div', { className: 'transfer-dir' },
+            e('button', { className: transferDir === 'push' ? 'active' : '', onClick: () => { setTransferDir('push'); setTransferFlags({}); } },
+              '→ ', mode === 'default' ? 'Borgo' : 'Hotel', ' → ', otherMode === 'default' ? 'Borgo' : 'Hotel'),
+            e('button', { className: transferDir === 'pull' ? 'active' : '', onClick: () => { setTransferDir('pull'); setTransferFlags({}); } },
+              '← ', otherMode === 'default' ? 'Borgo' : 'Hotel', ' → ', mode === 'default' ? 'Borgo' : 'Hotel')
+          ),
+          e('div', { className: 'transfer-list' },
+            td.fromItems.length === 0
+              ? e('div', { style: { padding: 12, textAlign: 'center', color: '#a0aec0', fontSize: 12 } }, 'Nessun elemento')
+              : td.fromItems.map(item => {
+                  const dup = td.toNames.has((item.name.it || '').toLowerCase().trim());
+                  return e('label', { key: item.id, className: 'transfer-item' + (dup ? ' exists' : '') },
+                    e('input', { type: 'checkbox', checked: !!transferFlags[item.id], onChange: () => toggleFlag(item.id) }),
+                    e('span', { className: 't-name' }, item.name.it || '???'),
+                    e('span', { className: 't-price' }, '€', (item.price || 0).toFixed(2)),
+                    e('span', { className: 't-badge ' + (dup ? 'dup' : 'new') }, dup ? 'esiste' : 'nuovo')
+                  );
+                })
+          ),
+          e('div', { className: 'transfer-bar' },
+            e('button', { style: { background: '#edf2f7', color: '#4a5568' }, onClick: selectAllNew }, 'Sel. nuovi'),
+            e('button', { style: { background: '#edf2f7', color: '#4a5568' }, onClick: () => { const flags = {}; td.fromItems.forEach(i => { flags[i.id] = true; }); setTransferFlags(flags); } }, 'Sel. tutti'),
+            e('button', { style: { background: '#edf2f7', color: '#4a5568' }, onClick: selectNone }, 'Nessuno'),
+            e('span', { className: 'sel-count' }, selectedCount, ' selezionati'),
+            e('button', { style: { background: selectedCount > 0 ? '#38a169' : '#a0aec0', color: '#fff', marginLeft: 'auto' }, onClick: transferSelected, disabled: selectedCount === 0 },
+              '→ Copia ', selectedCount, ' in ', toLabel)
+          )
+        );
+      })(),
       // Item count
       e('div', { className: 'item-count' }, nonSubCount, ' elementi | ', items.filter(i => i.type === 'subcategory').length, ' sottocategorie')
     ),
