@@ -97,6 +97,19 @@
     .transfer-item .t-badge.dup { background: #fed7d7; color: #9b2c2c; }
     .transfer-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .transfer-bar .sel-count { font-size: 12px; color: #718096; margin-left: auto; }
+    /* Coperto settings */
+    .coperto-panel { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .coperto-panel h4 { font-size: 13px; color: #4a5568; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .coperto-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .coperto-toggle label { font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .coperto-toggle input[type=checkbox] { accent-color: #38a169; width: 18px; height: 18px; }
+    .coperto-styles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+    .coperto-styles button { padding: 8px 4px; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 11px; font-weight: 600; color: #4a5568; text-align: center; line-height: 1.3; }
+    .coperto-styles button.active { border-color: #ca4d4f; background: #fef5f5; color: #ca4d4f; }
+    .coperto-fields { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .coperto-fields .form-group { margin-bottom: 0; }
+    .coperto-fields .form-group input { width: 100%; }
+    .coperto-preview { margin-top: 12px; padding: 10px; border: 1px dashed #cbd5e0; border-radius: 8px; background: #fafafa; font-size: 12px; color: #718096; text-align: center; }
     .item-count { font-size: 12px; color: #a0aec0; text-align: center; padding: 8px; }
   </style>
 </head>
@@ -120,6 +133,12 @@ const CATS = [
   { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Distillati e Liquori' }, { key: 'amari', it: 'Amari e Digestivi' }
 ];
 const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
+const DEFAULT_COPERTO = {
+  enabled: true, style: 2, price: 2.00,
+  text: { it: 'Pane e Servizio', en: 'Bread & Service', es: 'Pan y Servicio', fr: 'Pain et Service', de: 'Brot & Service', zh: '面包和服务费', ja: 'パン＆サービス' },
+  suffix: { it: 'a persona', en: 'per person', es: 'por persona', fr: 'par personne', de: 'pro Person', zh: '每人', ja: '一人当たり' }
+};
+const COPERTO_STYLE_LABELS = ['', 'Footer strip', 'Sotto pills', 'Prima card', 'In legenda', 'Banner'];
 const LANGS = ['it', 'en', 'es', 'fr', 'de', 'zh', 'ja'];
 const FLAGS = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷', de: '🇩🇪', zh: '🇨🇳', ja: '🇯🇵' };
 
@@ -307,7 +326,8 @@ const App = () => {
   const [status, setStatus] = useState('');
   const [dirty, setDirty] = useState(false);
   const [transferFlags, setTransferFlags] = useState({});
-  const [transferDir, setTransferDir] = useState('push'); // 'push' = current→other, 'pull' = other→current
+  const [transferDir, setTransferDir] = useState('push');
+  const [coperto, setCoperto] = useState(DEFAULT_COPERTO);
 
   // Load data
   useEffect(() => {
@@ -315,9 +335,17 @@ const App = () => {
     fetch(SUPABASE_URL + '/rest/v1/menu_data?id=eq.main&select=*', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     }).then(r => r.json()).then(d => {
-      if (d[0]) { setMenuData(d[0].menu); setSpecials(d[0].specials || {}); setStatus('✓ Caricato'); }
+      if (d[0]) {
+        setMenuData(d[0].menu);
+        setSpecials(d[0].specials || {});
+        if (d[0].menu && d[0].menu._coperto) setCoperto({ ...DEFAULT_COPERTO, ...d[0].menu._coperto });
+        setStatus('✓ Caricato');
+      }
     }).catch(err => setStatus('❌ Errore caricamento'));
   }, [authed]);
+
+  // Transfer: reset flags when mode/cat changes (must be before conditional returns)
+  useEffect(() => { setTransferFlags({}); setTransferDir('push'); }, [mode, cat]);
 
   if (!authed) return e(PinScreen, { onAuth: h => { setAuthed(true); setPinHash(h); } });
   if (!menuData) return e('div', { style: { padding: 40, textAlign: 'center', color: '#718096' } }, 'Caricamento...');
@@ -346,7 +374,7 @@ const App = () => {
     try {
       const res = await fetch(SUPABASE_URL + '/functions/v1/save-menu', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
-        body: JSON.stringify({ menu: menuData, specials, pinHash })
+        body: JSON.stringify({ menu: { ...menuData, _coperto: coperto }, specials, pinHash })
       });
       const data = await res.json();
       if (data.success) { setDirty(false); setStatus('✅ Salvato!'); }
@@ -401,9 +429,6 @@ const App = () => {
   };
 
   const otherMode = mode === 'default' ? 'sunday' : 'default';
-
-  // Transfer: reset flags when mode/cat changes
-  useEffect(() => { setTransferFlags({}); setTransferDir('push'); }, [mode, cat]);
 
   // Transfer helpers
   const getTransferData = () => {
@@ -461,6 +486,53 @@ const App = () => {
     ),
     // Content
     e('div', { className: 'content' },
+      // Coperto settings (default mode, kitchen cats only)
+      mode === 'default' && !BAR_CATS.includes(cat) && e('div', { className: 'coperto-panel' },
+        e('h4', null, '🍞 Pane e Servizio'),
+        e('div', { className: 'coperto-toggle' },
+          e('label', null,
+            e('input', { type: 'checkbox', checked: coperto.enabled, onChange: () => { setCoperto(p => ({ ...p, enabled: !p.enabled })); setDirty(true); } }),
+            'Mostra sul menu'
+          )
+        ),
+        coperto.enabled && e('div', null,
+          e('div', { style: { fontSize: 12, color: '#4a5568', fontWeight: 600, marginBottom: 6 } }, 'Stile:'),
+          e('div', { className: 'coperto-styles' },
+            [1,2,3,4,5].map(s => e('button', { key: s, className: coperto.style === s ? 'active' : '',
+              onClick: () => { setCoperto(p => ({ ...p, style: s })); setDirty(true); }
+            }, COPERTO_STYLE_LABELS[s]))
+          ),
+          e('div', { className: 'coperto-fields' },
+            e('div', { className: 'form-group', style: { flex: 2, minWidth: 160 } },
+              e('label', null, 'Testo (IT)'),
+              e('input', { value: coperto.text.it, onChange: ev => { setCoperto(p => ({ ...p, text: { ...p.text, it: ev.target.value } })); setDirty(true); } })
+            ),
+            e('div', { className: 'form-group', style: { width: 80 } },
+              e('label', null, 'Prezzo €'),
+              e('input', { type: 'number', step: '0.5', value: coperto.price, onChange: ev => { setCoperto(p => ({ ...p, price: +ev.target.value })); setDirty(true); } })
+            ),
+            e('div', { className: 'form-group', style: { flex: 1, minWidth: 100 } },
+              e('label', null, 'Suffisso (IT)'),
+              e('input', { value: coperto.suffix.it, onChange: ev => { setCoperto(p => ({ ...p, suffix: { ...p.suffix, it: ev.target.value } })); setDirty(true); } })
+            )
+          ),
+          e('details', { style: { marginTop: 10 } },
+            e('summary', { style: { fontSize: 12, color: '#718096', cursor: 'pointer' } }, 'Traduzioni'),
+            e('div', { style: { marginTop: 8, display: 'grid', gridTemplateColumns: '30px 1fr 1fr', gap: '4px 8px', alignItems: 'center' } },
+              ...['en','es','fr','de','zh','ja'].flatMap(l => [
+                e('span', { key: l+'f', style: { fontSize: 14, textAlign: 'center' } }, FLAGS[l]),
+                e('input', { key: l+'t', value: coperto.text[l] || '', placeholder: 'Testo', style: { padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, fontSize: 12 },
+                  onChange: ev => { setCoperto(p => ({ ...p, text: { ...p.text, [l]: ev.target.value } })); setDirty(true); } }),
+                e('input', { key: l+'s', value: coperto.suffix[l] || '', placeholder: 'Suffisso', style: { padding: '4px 8px', border: '1px solid #e2e8f0', borderRadius: 4, fontSize: 12 },
+                  onChange: ev => { setCoperto(p => ({ ...p, suffix: { ...p.suffix, [l]: ev.target.value } })); setDirty(true); } })
+              ])
+            )
+          ),
+          e('div', { className: 'coperto-preview' },
+            '🍞 ', coperto.text.it, ' — €', coperto.price.toFixed(2), ' ', coperto.suffix.it
+          )
+        )
+      ),
       // Item list
       items.length === 0 && e('div', { className: 'item-count' }, 'Nessun elemento in questa categoria'),
       ...items.map((item, idx) => {

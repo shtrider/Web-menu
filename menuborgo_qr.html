@@ -336,9 +336,28 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
+  const [coperto, setCoperto] = useState(null);
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
+
+  const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
+  const renderCoperto = (style) => {
+    if (!_copertoShow || coperto.style !== style) return null;
+    const txt = (coperto.text && coperto.text[lang]) || coperto.text?.it || '';
+    const sfx = (coperto.suffix && coperto.suffix[lang]) || coperto.suffix?.it || '';
+    const priceStr = '€' + (coperto.price || 0).toFixed(2);
+    const full = txt + ' — ' + priceStr + (sfx ? ' ' + sfx : '');
+    if (style === 1) return e('div', { style: { background: 'linear-gradient(135deg, #f7f0e6, #faf5ec)', borderTop: '1px solid #e8dcc8', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'sticky', bottom: 0, zIndex: 10 } },
+      e('span', { style: { fontSize: 16 } }, '🍞'), e('span', { style: { fontSize: 13, color: '#8b6914', fontWeight: 500 } }, txt), e('span', { style: { fontSize: 14, color: '#8b6914', fontWeight: 700 } }, priceStr + (sfx ? ' ' + sfx : '')));
+    if (style === 2) return e('div', { style: { textAlign: 'center', padding: '8px 16px', fontSize: 12, color: '#8b7355', background: '#fdf8f0', borderBottom: '1px solid #f0e6d4', letterSpacing: 0.3 } }, '🍞 ' + full);
+    if (style === 3) return e('div', { style: { display: 'flex', alignItems: 'center', padding: '12px 20px', background: '#fdf8f0', borderRadius: 12, gap: 10, marginBottom: 12, border: '1px solid #f0e6d4' } },
+      e('span', { style: { fontSize: 20 } }, '🍞'), e('div', { style: { flex: 1 } }, e('div', { style: { fontSize: 13, fontWeight: 600, color: '#8b6914' } }, txt), sfx && e('div', { style: { fontSize: 11, color: '#b8a070', marginTop: 1 } }, sfx)), e('span', { style: { fontSize: 15, fontWeight: 700, color: '#8b6914' } }, priceStr));
+    if (style === 4) return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 16px', marginBottom: 10, background: '#fffdf5', border: '1px dashed #d4c9a8', borderRadius: 8, fontSize: 12, color: '#8b7355', fontWeight: 500 } }, '🍞 ' + full);
+    if (style === 5) return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 20px', background: 'linear-gradient(135deg, #faf3e6, #f7eed8)', borderBottom: '1px solid #e8dcc8' } },
+      e('span', { style: { fontSize: 18 } }, '🍞'), e('span', { style: { fontSize: 13, color: '#6b5a3e', fontWeight: 500 } }, txt), e('span', { style: { fontSize: 14, color: '#8b6914', fontWeight: 700, background: '#fff', padding: '3px 10px', borderRadius: 12, border: '1px solid #e8dcc8' } }, priceStr + (sfx ? ' ' + sfx : '')));
+    return null;
+  };
 
   const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
 
@@ -393,6 +412,7 @@ function App() {
           menu.spirits = defaultMenu.spirits;
           menu.amari = defaultMenu.amari;
           setMenuData(inlineSubcategories(menu));
+          if (rawMenu._coperto) setCoperto(rawMenu._coperto);
 
           let ua = data.unavailable_items;
           if (ua && typeof ua === 'object' && !Array.isArray(ua)) ua = ua.default || [];
@@ -570,15 +590,19 @@ function App() {
         )
       )
     ),
+    renderCoperto(2),
+    renderCoperto(5),
 
     e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
       e('h2', { style: { margin: '0 0 20px', color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
 
+      renderCoperto(3),
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
         currentItems.map((item) => item.type === 'subcategory' ? renderSubHeader(item) : renderItemCard(item))
       ),
 
       e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
+        renderCoperto(4),
         e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
         e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
           Object.entries(ALLERGENS).map(([key, val]) =>
@@ -590,6 +614,8 @@ function App() {
         )
       )
     ),
+
+    renderCoperto(1),
 
     e('footer', { style: { textAlign: 'center', padding: '24px', color: theme.footerColor, fontSize: '12px' }},
       '\u00A9 ' + new Date().getFullYear() + ' Borgo della Mistica'
