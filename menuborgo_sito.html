@@ -154,7 +154,8 @@ const CATEGORY_NAMES = {
   beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere', zh: '啤酒', ja: 'ビール' },
   cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails', zh: '鸡尾酒', ja: 'カクテル' },
   spirits: { it: 'Distillati e Liquori', en: 'Spirits & Liqueurs', es: 'Destilados y Licores', fr: 'Spiritueux et Liqueurs', de: 'Spirituosen & Liköre', zh: '烈酒与利口酒', ja: 'スピリッツ＆リキュール' },
-  amari: { it: 'Amari e Digestivi', en: 'Bitters & Digestifs', es: 'Amargos y Digestivos', fr: 'Amers et Digestifs', de: 'Bitter & Digestifs', zh: '苦酒与餐后酒', ja: 'アマーリ＆ディジェスティーヴォ' }
+  amari: { it: 'Amari e Digestivi', en: 'Bitters & Digestifs', es: 'Amargos y Digestivos', fr: 'Amers et Digestifs', de: 'Bitter & Digestifs', zh: '苦酒与餐后酒', ja: 'アマーリ＆ディジェスティーヴォ' },
+  caffetteria: { it: 'Caffetteria', en: 'Coffee', es: 'Cafetería', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' }
 };
 
 const RESERVE_TEXT = {
@@ -318,6 +319,14 @@ const defaultMenu = {
     { id: 209, name: { it: 'Baileys' }, price: 6, allergens: ['dairy'], origin: 'Dublino, Irlanda', alcPercent: 17, image: '' },
     { id: 210, name: { it: 'Martell Cognac VS' }, price: 8, allergens: [], origin: 'Cognac, Francia', alcPercent: 40, image: '' },
     { id: 211, name: { it: 'Brandy Vecchia Romagna' }, price: 8, allergens: [], origin: 'Faenza, Italia', alcPercent: 38, image: '' }
+  ],
+  caffetteria: [
+    { id: 220, name: { it: 'Caffè', en: 'Espresso', es: 'Café', fr: 'Café', de: 'Espresso', zh: '浓缩咖啡', ja: 'エスプレッソ' }, price: 1.5, allergens: [], image: '' },
+    { id: 221, name: { it: 'Cappuccino', en: 'Cappuccino', es: 'Capuchino', fr: 'Cappuccino', de: 'Cappuccino', zh: '卡布奇诺', ja: 'カプチーノ' }, price: 2, allergens: ['dairy'], image: '' },
+    { id: 222, name: { it: 'Americano', en: 'Americano', es: 'Americano', fr: 'Americano', de: 'Americano', zh: '美式咖啡', ja: 'アメリカーノ' }, price: 1.5, allergens: [], image: '' },
+    { id: 223, name: { it: 'Caffè Latte', en: 'Caffè Latte', es: 'Café con Leche', fr: 'Café au Lait', de: 'Milchkaffee', zh: '拿铁咖啡', ja: 'カフェラテ' }, price: 2, allergens: ['dairy'], image: '' },
+    { id: 224, name: { it: 'Ginseng', en: 'Ginseng Coffee', es: 'Café de Ginseng', fr: 'Café au Ginseng', de: 'Ginseng Kaffee', zh: '人参咖啡', ja: 'ジンセンコーヒー' }, price: 2.5, allergens: [], image: '' },
+    { id: 225, name: { it: 'Orzo', en: 'Barley Coffee', es: 'Café de Cebada', fr: 'Café d\'Orge', de: 'Gerstenkaffee', zh: '大麦咖啡', ja: '麦コーヒー' }, price: 2, allergens: ['gluten'], image: '' }
   ]
 };
 
@@ -339,7 +348,7 @@ function App() {
   const [coperto, setCoperto] = useState(null);
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
-  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
+  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari', 'caffetteria'];
 
   const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {

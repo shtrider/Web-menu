@@ -130,7 +130,8 @@ const CATS = [
   { key: 'appetizers', it: 'Antipasti' }, { key: 'primi', it: 'Primi' }, { key: 'secondi', it: 'Secondi' },
   { key: 'contorni', it: 'Contorni' }, { key: 'dessert', it: 'Dolci' },
   { key: 'softdrinks', it: 'Bevande' }, { key: 'wine', it: 'Vini' }, { key: 'beer', it: 'Birre' },
-  { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Distillati e Liquori' }, { key: 'amari', it: 'Amari e Digestivi' }
+  { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Distillati e Liquori' }, { key: 'amari', it: 'Amari e Digestivi' },
+  { key: 'caffetteria', it: 'Caffetteria' }
 ];
 const DEFAULT_SPIRITS = [
   { id: 150, type: 'subcategory', name: { it: 'Gin', en: 'Gin', es: 'Ginebra', fr: 'Gin', de: 'Gin', zh: '金酒', ja: 'ジン' } },
@@ -193,7 +194,15 @@ const DEFAULT_AMARI = [
   { id: 210, name: { it: 'Martell Cognac VS' }, price: 8, allergens: [], origin: 'Cognac, Francia', alcPercent: 40, image: '' },
   { id: 211, name: { it: 'Brandy Vecchia Romagna' }, price: 8, allergens: [], origin: 'Faenza, Italia', alcPercent: 38, image: '' }
 ];
-const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
+const DEFAULT_CAFFETTERIA = [
+  { id: 220, name: { it: 'Caffè', en: 'Espresso', es: 'Café', fr: 'Café', de: 'Espresso', zh: '浓缩咖啡', ja: 'エスプレッソ' }, price: 1.5, allergens: [], image: '' },
+  { id: 221, name: { it: 'Cappuccino', en: 'Cappuccino', es: 'Capuchino', fr: 'Cappuccino', de: 'Cappuccino', zh: '卡布奇诺', ja: 'カプチーノ' }, price: 2, allergens: ['dairy'], image: '' },
+  { id: 222, name: { it: 'Americano', en: 'Americano', es: 'Americano', fr: 'Americano', de: 'Americano', zh: '美式咖啡', ja: 'アメリカーノ' }, price: 1.5, allergens: [], image: '' },
+  { id: 223, name: { it: 'Caffè Latte', en: 'Caffè Latte', es: 'Café con Leche', fr: 'Café au Lait', de: 'Milchkaffee', zh: '拿铁咖啡', ja: 'カフェラテ' }, price: 2, allergens: ['dairy'], image: '' },
+  { id: 224, name: { it: 'Ginseng', en: 'Ginseng Coffee', es: 'Café de Ginseng', fr: 'Café au Ginseng', de: 'Ginseng Kaffee', zh: '人参咖啡', ja: 'ジンセンコーヒー' }, price: 2.5, allergens: [], image: '' },
+  { id: 225, name: { it: 'Orzo', en: 'Barley Coffee', es: 'Café de Cebada', fr: 'Café d\'Orge', de: 'Gerstenkaffee', zh: '大麦咖啡', ja: '麦コーヒー' }, price: 2, allergens: ['gluten'], image: '' }
+];
+const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari', 'caffetteria'];
 const DEFAULT_COPERTO = {
   enabled: true, style: 2, price: 2.00,
   text: { it: 'Pane e Servizio', en: 'Bread & Service', es: 'Pan y Servicio', fr: 'Pain et Service', de: 'Brot & Service', zh: '面包和服务费', ja: 'パン＆サービス' },
@@ -406,6 +415,7 @@ const App = () => {
           if (!m[mk]) return;
           if (!m[mk].spirits || m[mk].spirits.length < DEFAULT_SPIRITS.length) { m[mk].spirits = DEFAULT_SPIRITS; needsSync = true; }
           if (!m[mk].amari || m[mk].amari.length < DEFAULT_AMARI.length) { m[mk].amari = DEFAULT_AMARI; needsSync = true; }
+          if (!m[mk].caffetteria || m[mk].caffetteria.length < DEFAULT_CAFFETTERIA.length) { m[mk].caffetteria = DEFAULT_CAFFETTERIA; needsSync = true; }
         });
         setMenuData(m);
         setSpecials(sp);
