@@ -461,6 +461,7 @@ function App() {
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
 
+  const isSunday = menuOverride === 'sunday' ? true : menuOverride === 'default' ? false : new Date().getDay() === 0;
   const _copertoShow = coperto && coperto.enabled && !isSunday && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
     if (!_copertoShow || coperto.style !== style) return null;
@@ -484,7 +485,6 @@ function App() {
     );
     return null;
   };
-  const isSunday = menuOverride === 'sunday' ? true : menuOverride === 'default' ? false : new Date().getDay() === 0;
   const activeMode = isSunday ? 'sunday' : 'default';
   const menu = menuData[activeMode] || defaultMenu;
   const specials = fullSpecials[activeMode] || defaultSpecials;
