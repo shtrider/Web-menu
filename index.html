@@ -557,8 +557,6 @@ function App() {
     let dual;
     if (rawMenu.default && typeof rawMenu.default === 'object' && (rawMenu.default.appetizers || rawMenu.default.softdrinks)) {
       dual = rawMenu;
-      if (dual.default) { dual.default.spirits = defaultMenu.spirits; dual.default.amari = defaultMenu.amari; }
-      if (dual.sunday) { dual.sunday.spirits = defaultMenu.spirits; dual.sunday.amari = defaultMenu.amari; }
     } else {
       const barItems = {
         softdrinks: rawMenu.softdrinks || defaultMenu.softdrinks,

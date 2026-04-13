@@ -398,13 +398,29 @@ const App = () => {
     }).then(r => r.json()).then(d => {
       if (d[0]) {
         const m = d[0].menu;
-        // Force-override spirits/amari with hardcoded BDM 2026 data
-        if (m.default) { m.default.spirits = DEFAULT_SPIRITS; m.default.amari = DEFAULT_AMARI; }
-        if (m.sunday) { m.sunday.spirits = DEFAULT_SPIRITS; m.sunday.amari = DEFAULT_AMARI; }
-        setMenuData(m);
-        setSpecials(d[0].specials || {});
+        const sp = d[0].specials || {};
         if (m._coperto) setCoperto({ ...DEFAULT_COPERTO, ...m._coperto });
-        setStatus('✓ Caricato');
+        // Detect stale/empty spirits or amari and sync defaults to Supabase
+        let needsSync = false;
+        ['default', 'sunday'].forEach(mk => {
+          if (!m[mk]) return;
+          if (!m[mk].spirits || m[mk].spirits.length < DEFAULT_SPIRITS.length) { m[mk].spirits = DEFAULT_SPIRITS; needsSync = true; }
+          if (!m[mk].amari || m[mk].amari.length < DEFAULT_AMARI.length) { m[mk].amari = DEFAULT_AMARI; needsSync = true; }
+        });
+        setMenuData(m);
+        setSpecials(sp);
+        if (needsSync) {
+          // Persist defaults to Supabase so all menus read correct data
+          fetch(SUPABASE_URL + '/functions/v1/save-menu', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+            body: JSON.stringify({ menu: { ...m, _coperto: m._coperto || DEFAULT_COPERTO }, specials: sp, pinHash })
+          }).then(r => r.json()).then(res => {
+            if (res.success) setStatus('✓ Caricato + Spirits/Amari sincronizzati');
+            else setStatus('✓ Caricato (sync errore: ' + (res.error || '?') + ')');
+          }).catch(() => setStatus('✓ Caricato (sync fallito)'));
+        } else {
+          setStatus('✓ Caricato');
+        }
       }
     }).catch(err => setStatus('❌ Errore caricamento'));
   }, [authed]);
