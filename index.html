@@ -469,19 +469,16 @@ function App() {
     const priceStr = '€' + (coperto.price || 0).toFixed(2);
     const full = txt + ' — ' + priceStr + (sfx ? ' ' + sfx : '');
     if (style === 1) return e('div', { style: { background: 'linear-gradient(135deg, #f7f0e6, #faf5ec)', borderTop: '1px solid #e8dcc8', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'sticky', bottom: 0, zIndex: 10 } },
-      e('span', { style: { fontSize: 16 } }, '🍞'),
       e('span', { style: { fontSize: 13, color: '#8b6914', fontWeight: 500 } }, txt),
       e('span', { style: { fontSize: 14, color: '#8b6914', fontWeight: 700 } }, priceStr + (sfx ? ' ' + sfx : ''))
     );
-    if (style === 2) return e('div', { style: { textAlign: 'center', padding: '8px 16px', fontSize: 12, color: '#8b7355', background: '#fdf8f0', borderBottom: '1px solid #f0e6d4', letterSpacing: 0.3 } }, '🍞 ' + full);
+    if (style === 2) return e('div', { style: { textAlign: 'center', padding: '8px 16px', fontSize: 12, color: '#8b7355', background: '#fdf8f0', borderBottom: '1px solid #f0e6d4', letterSpacing: 0.3 } }, full);
     if (style === 3) return e('div', { style: { display: 'flex', alignItems: 'center', padding: '12px 20px', background: '#fdf8f0', borderRadius: 12, gap: 10, marginBottom: 12, border: '1px solid #f0e6d4' } },
-      e('span', { style: { fontSize: 20 } }, '🍞'),
       e('div', { style: { flex: 1 } }, e('div', { style: { fontSize: 13, fontWeight: 600, color: '#8b6914' } }, txt), sfx && e('div', { style: { fontSize: 11, color: '#b8a070', marginTop: 1 } }, sfx)),
       e('span', { style: { fontSize: 15, fontWeight: 700, color: '#8b6914' } }, priceStr)
     );
-    if (style === 4) return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 16px', marginBottom: 10, background: '#fffdf5', border: '1px dashed #d4c9a8', borderRadius: 8, fontSize: 12, color: '#8b7355', fontWeight: 500 } }, '🍞 ' + full);
+    if (style === 4) return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '8px 16px', marginBottom: 10, background: '#fffdf5', border: '1px dashed #d4c9a8', borderRadius: 8, fontSize: 12, color: '#8b7355', fontWeight: 500 } }, full);
     if (style === 5) return e('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 20px', background: 'linear-gradient(135deg, #faf3e6, #f7eed8)', borderBottom: '1px solid #e8dcc8' } },
-      e('span', { style: { fontSize: 18 } }, '🍞'),
       e('span', { style: { fontSize: 13, color: '#6b5a3e', fontWeight: 500 } }, txt),
       e('span', { style: { fontSize: 14, color: '#8b6914', fontWeight: 700, background: '#fff', padding: '3px 10px', borderRadius: 12, border: '1px solid #e8dcc8' } }, priceStr + (sfx ? ' ' + sfx : ''))
     );

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coperto Preview - 5 Options</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; }
+h2 { text-align: center; padding: 20px; color: #1a1a2e; font-size: 18px; }
+.option { max-width: 420px; margin: 0 auto 40px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.12); background: #fff; }
+.option-label { background: #1a1a2e; color: #fff; padding: 10px 16px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+.option-label span { opacity: 0.6; font-weight: 400; margin-left: 8px; }
+
+/* Shared mock elements */
+.mock-header { background: linear-gradient(135deg, #ca4d4f, #a03032); color: #fff; padding: 14px 20px; font-size: 16px; font-weight: 600; }
+.mock-tabs { display: flex; background: #fff; border-bottom: 2px solid #e2e8f0; padding: 0 8px; overflow-x: auto; }
+.mock-tab { padding: 10px 14px; font-size: 12px; color: #999; border-bottom: 3px solid transparent; white-space: nowrap; cursor: default; }
+.mock-tab.active { color: #ca4d4f; border-bottom-color: #ca4d4f; font-weight: 700; }
+.mock-pills { display: flex; gap: 8px; padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #eee; overflow-x: auto; }
+.mock-pill { padding: 8px 16px; border: 1px solid #ddd; border-radius: 20px; font-size: 12px; color: #666; white-space: nowrap; cursor: default; }
+.mock-pill.active { border-color: #ca4d4f; color: #ca4d4f; font-weight: 600; background: #fff; }
+.mock-item { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f0f0f0; }
+.mock-item .name { flex: 1; font-size: 14px; }
+.mock-item .desc { font-size: 11px; color: #999; margin-top: 2px; }
+.mock-item .price { color: #ca4d4f; font-weight: 600; font-size: 15px; }
+.mock-allergen { padding: 16px 20px; background: #f0f5fa; border-top: 1px solid #e2e8f0; }
+.mock-allergen h5 { font-size: 11px; color: #4a5568; margin-bottom: 6px; }
+.mock-allergen .icons { font-size: 10px; color: #718096; line-height: 1.8; }
+.mock-footer { text-align: center; padding: 16px; font-size: 11px; color: #a0aec0; border-top: 1px solid #eee; }
+
+/* === OPTION 1: Sticky footer strip === */
+.coperto-strip {
+  background: linear-gradient(135deg, #f7f0e6, #faf5ec);
+  border-top: 1px solid #e8dcc8;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+}
+.coperto-strip .bread { font-size: 16px; }
+.coperto-strip .text { font-size: 13px; color: #8b6914; font-weight: 500; }
+.coperto-strip .amt { font-size: 14px; color: #8b6914; font-weight: 700; }
+
+/* === OPTION 2: Category header note === */
+.coperto-header-note {
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #8b7355;
+  background: #fdf8f0;
+  border-bottom: 1px solid #f0e6d4;
+  letter-spacing: 0.3px;
+}
+
+/* === OPTION 3: First item card === */
+.coperto-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fdf8f0;
+  border-bottom: 1px solid #f0e6d4;
+  gap: 10px;
+}
+.coperto-card .icon { font-size: 20px; }
+.coperto-card .info { flex: 1; }
+.coperto-card .info .title { font-size: 13px; font-weight: 600; color: #8b6914; }
+.coperto-card .info .sub { font-size: 11px; color: #b8a070; margin-top: 1px; }
+.coperto-card .amt { font-size: 15px; font-weight: 700; color: #8b6914; }
+
+/* === OPTION 4: Inside allergen legend === */
+.coperto-legend-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  background: #fffdf5;
+  border: 1px dashed #d4c9a8;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #8b7355;
+  font-weight: 500;
+}
+
+/* === OPTION 5: Inline banner === */
+.coperto-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #faf3e6, #f7eed8);
+  border-bottom: 1px solid #e8dcc8;
+}
+.coperto-banner .bread { font-size: 18px; }
+.coperto-banner .label { font-size: 13px; color: #6b5a3e; font-weight: 500; }
+.coperto-banner .price { font-size: 14px; color: #8b6914; font-weight: 700; background: #fff; padding: 3px 10px; border-radius: 12px; border: 1px solid #e8dcc8; }
+</style>
+</head>
+<body>
+
+<h2>Coperto "Pane e Servizio" — 5 Layout Options</h2>
+
+<!-- OPTION 1 -->
+<div class="option">
+  <div class="option-label">OPTION 1 <span>Sticky footer strip — always visible at bottom</span></div>
+  <div class="mock-header">Borgo della Mistica</div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">Cucina</div>
+    <div class="mock-tab">Bar</div>
+  </div>
+  <div class="mock-pills">
+    <div class="mock-pill active">Antipasti</div>
+    <div class="mock-pill">Primi</div>
+    <div class="mock-pill">Secondi</div>
+  </div>
+  <div class="mock-item"><div><div class="name">Tartare di Black Angus</div><div class="desc">Senape antica e tuorlo confit</div></div><div class="price">€16.00</div></div>
+  <div class="mock-item"><div><div class="name">Burrata alla carbonara</div><div class="desc">Guanciale di Amatrice DOP</div></div><div class="price">€12.00</div></div>
+  <div class="mock-item"><div><div class="name">Bruschetta ricotta di bufala</div><div class="desc">Datterino e crema al basilico</div></div><div class="price">€6.00</div></div>
+  <div class="coperto-strip">
+
+    <span class="text">Pane e Servizio</span>
+    <span class="amt">€2.00</span>
+  </div>
+</div>
+
+<!-- OPTION 2 -->
+<div class="option">
+  <div class="option-label">OPTION 2 <span>Category header note — under pills, kitchen only</span></div>
+  <div class="mock-header">Borgo della Mistica</div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">Cucina</div>
+    <div class="mock-tab">Bar</div>
+  </div>
+  <div class="mock-pills">
+    <div class="mock-pill active">Antipasti</div>
+    <div class="mock-pill">Primi</div>
+    <div class="mock-pill">Secondi</div>
+  </div>
+  <div class="coperto-header-note">Pane e Servizio — €2.00 a persona</div>
+  <div class="mock-item"><div><div class="name">Tartare di Black Angus</div><div class="desc">Senape antica e tuorlo confit</div></div><div class="price">€16.00</div></div>
+  <div class="mock-item"><div><div class="name">Burrata alla carbonara</div><div class="desc">Guanciale di Amatrice DOP</div></div><div class="price">€12.00</div></div>
+  <div class="mock-item"><div><div class="name">Bruschetta ricotta di bufala</div><div class="desc">Datterino e crema al basilico</div></div><div class="price">€6.00</div></div>
+</div>
+
+<!-- OPTION 3 -->
+<div class="option">
+  <div class="option-label">OPTION 3 <span>First item in Antipasti — styled as info card</span></div>
+  <div class="mock-header">Borgo della Mistica</div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">Cucina</div>
+    <div class="mock-tab">Bar</div>
+  </div>
+  <div class="mock-pills">
+    <div class="mock-pill active">Antipasti</div>
+    <div class="mock-pill">Primi</div>
+    <div class="mock-pill">Secondi</div>
+  </div>
+  <div class="coperto-card">
+
+    <div class="info">
+      <div class="title">Pane e Servizio</div>
+      <div class="sub">Bread & table service per person</div>
+    </div>
+    <span class="amt">€2.00</span>
+  </div>
+  <div class="mock-item"><div><div class="name">Tartare di Black Angus</div><div class="desc">Senape antica e tuorlo confit</div></div><div class="price">€16.00</div></div>
+  <div class="mock-item"><div><div class="name">Burrata alla carbonara</div><div class="desc">Guanciale di Amatrice DOP</div></div><div class="price">€12.00</div></div>
+  <div class="mock-item"><div><div class="name">Bruschetta ricotta di bufala</div><div class="desc">Datterino e crema al basilico</div></div><div class="price">€6.00</div></div>
+</div>
+
+<!-- OPTION 4 -->
+<div class="option">
+  <div class="option-label">OPTION 4 <span>Inside allergen legend area at page bottom</span></div>
+  <div class="mock-header">Borgo della Mistica</div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">Cucina</div>
+    <div class="mock-tab">Bar</div>
+  </div>
+  <div class="mock-pills">
+    <div class="mock-pill active">Antipasti</div>
+    <div class="mock-pill">Primi</div>
+    <div class="mock-pill">Secondi</div>
+  </div>
+  <div class="mock-item"><div><div class="name">Tartare di Black Angus</div><div class="desc">Senape antica e tuorlo confit</div></div><div class="price">€16.00</div></div>
+  <div class="mock-item"><div><div class="name">Burrata alla carbonara</div><div class="desc">Guanciale di Amatrice DOP</div></div><div class="price">€12.00</div></div>
+  <div class="mock-allergen">
+    <div class="coperto-legend-note">Pane e Servizio — €2.00 a persona</div>
+    <h5>Allergen Legend</h5>
+    <div class="icons">🌾 Glutine &nbsp; 🥚 Uova &nbsp; 🐟 Pesce &nbsp; 🥛 Latticini &nbsp; 🦀 Crostacei &nbsp; 🫘 Soia</div>
+  </div>
+</div>
+
+<!-- OPTION 5 -->
+<div class="option">
+  <div class="option-label">OPTION 5 <span>Inline banner between pills and items, kitchen only</span></div>
+  <div class="mock-header">Borgo della Mistica</div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">Cucina</div>
+    <div class="mock-tab">Bar</div>
+  </div>
+  <div class="mock-pills">
+    <div class="mock-pill active">Antipasti</div>
+    <div class="mock-pill">Primi</div>
+    <div class="mock-pill">Secondi</div>
+  </div>
+  <div class="coperto-banner">
+
+    <span class="label">Pane e Servizio</span>
+    <span class="price">€2.00</span>
+  </div>
+  <div class="mock-item"><div><div class="name">Tartare di Black Angus</div><div class="desc">Senape antica e tuorlo confit</div></div><div class="price">€16.00</div></div>
+  <div class="mock-item"><div><div class="name">Burrata alla carbonara</div><div class="desc">Guanciale di Amatrice DOP</div></div><div class="price">€12.00</div></div>
+  <div class="mock-item"><div><div class="name">Bruschetta ricotta di bufala</div><div class="desc">Datterino e crema al basilico</div></div><div class="price">€6.00</div></div>
+</div>
+
+<div style="height: 40px;"></div>
+</body>
+</html>
