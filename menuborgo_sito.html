@@ -333,7 +333,6 @@ const defaultMenu = {
 function App() {
   const [menuData, setMenuData] = useState(null);
 
-  const [unavailableItems, setUnavailableItems] = useState([]);
 
   const [lang, setLang] = useState(() => {
     const bl = (navigator.language || '').split('-')[0].toLowerCase();
@@ -368,7 +367,6 @@ function App() {
     return null;
   };
 
-  const unavailableText = { it: 'Non Disponibile', en: 'Not Available', es: 'No Disponible', fr: 'Non Disponible', de: 'Nicht Verfügbar', zh: '暂不供应', ja: '提供不可' };
 
   const inlineSubcategories = (menuObj) => {
     if (!menuObj || typeof menuObj !== 'object') return menuObj;
@@ -420,10 +418,6 @@ function App() {
           }
           if (rawMenu._coperto) setCoperto(rawMenu._coperto);
           setMenuData(inlineSubcategories(menu));
-
-          let ua = data.unavailable_items;
-          if (ua && typeof ua === 'object' && !Array.isArray(ua)) ua = ua.default || [];
-          setUnavailableItems(Array.isArray(ua) ? ua : []);
         }
       } catch (error) {
         console.error('Error loading menu:', error);
@@ -491,18 +485,14 @@ function App() {
   };
 
   const renderItemCard = (item) => {
-    const isUnavailable = unavailableItems.includes(item.id);
     return e('div', {
       key: item.id,
       style: { background: theme.cardBg, borderRadius: '12px', padding: 'clamp(14px, 3vw, 20px)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
     },
-      isUnavailable && e('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '12px' }},
-        e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, unavailableText[lang] || unavailableText.it)
-      ),
       _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       _isBeer && item.serving && e('img', { src: 'icons/beer-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
-      barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
-      e('div', { style: { flex: 1, opacity: isUnavailable ? 0.4 : 1 }},
+      barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px' }, referrerPolicy: 'no-referrer' }),
+      e('div', { style: { flex: 1 }},
         e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
           e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
           e('div', { style: { textAlign: 'right', flexShrink: 0 }},
