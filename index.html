@@ -218,7 +218,8 @@ const CATEGORY_NAMES = {
   wine: { it: 'Vini', en: 'Wines', es: 'Vinos', fr: 'Vins', de: 'Weine', zh: '葡萄酒', ja: 'ワイン' },
   beer: { it: 'Birre', en: 'Beers', es: 'Cervezas', fr: 'Bières', de: 'Biere', zh: '啤酒', ja: 'ビール' },
   cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails', zh: '鸡尾酒', ja: 'カクテル' },
-  spirits: { it: 'Liquori', en: 'Spirits', es: 'Licores', fr: 'Spiritueux', de: 'Spirituosen', zh: '烈酒', ja: 'スピリッツ' }
+  spirits: { it: 'Distillati e Liquori', en: 'Spirits & Liqueurs', es: 'Destilados y Licores', fr: 'Spiritueux et Liqueurs', de: 'Spirituosen & Liköre', zh: '烈酒与利口酒', ja: 'スピリッツ＆リキュール' },
+  amari: { it: 'Amari e Digestivi', en: 'Bitters & Digestifs', es: 'Amargos y Digestivos', fr: 'Amers et Digestifs', de: 'Bitter & Digestifs', zh: '苦酒与餐后酒', ja: 'アマーリ＆ディジェスティーヴォ' }
 };
 
 const defaultMenu = {
@@ -313,9 +314,46 @@ const defaultMenu = {
     { id: 143, name: { it: 'Fiore di Menta' }, price: 8, allergens: [], flavorProfile: ['floreale', 'erbaceo', 'rinfrescante'], description: { it: 'Fior di Bitter Fiero S.Pellegrino, succo lime, menta fresca, sciroppo menta, succo cetriolo' }, image: '' }
   ],
   spirits: [
-    { id: 90, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa', zh: '格拉巴酒', ja: 'グラッパ' }, price: 6, allergens: ['sulfites'], image: '' },
-    { id: 91, name: { it: 'Amaro', en: 'Amaro (digestif)', es: 'Amaro (digestivo)', fr: 'Amaro (digestif)', de: 'Amaro (Digestif)', zh: '苦酒（餐后酒）', ja: 'アマーロ（食後酒）' }, price: 5, allergens: [], image: '' },
-    { id: 92, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello', zh: '柠檬酒', ja: 'リモンチェッロ' }, price: 5, allergens: [], image: '' }
+    { id: 150, type: 'subcategory', name: { it: 'Gin', en: 'Gin', es: 'Ginebra', fr: 'Gin', de: 'Gin', zh: '金酒', ja: 'ジン' } },
+    { id: 151, name: { it: 'Beefeater London Dry' }, price: 6, price2: 10, price2Label: 'G&T', allergens: [], origin: 'London, England', alcPercent: 40, image: '' },
+    { id: 152, name: { it: 'Beefeater 24' }, price: 7, price2: 11, price2Label: 'G&T', allergens: [], origin: 'London, England', alcPercent: 45, image: '' },
+    { id: 153, name: { it: 'Monkey 47' }, price: 8, price2: 12, price2Label: 'G&T', allergens: [], origin: 'Black Forest, Germany', alcPercent: 47, image: '' },
+    { id: 154, name: { it: 'Malfy Rosa' }, price: 7, price2: 11, price2Label: 'G&T', allergens: [], origin: 'Torino, Italia', alcPercent: 41, image: '' },
+    { id: 155, name: { it: 'Malfy Limone' }, price: 7, price2: 11, price2Label: 'G&T', allergens: [], origin: 'Torino, Italia', alcPercent: 41, image: '' },
+    { id: 156, type: 'subcategory', name: { it: 'Vodka', en: 'Vodka', es: 'Vodka', fr: 'Vodka', de: 'Wodka', zh: '伏特加', ja: 'ウォッカ' } },
+    { id: 157, name: { it: 'Absolut' }, price: 6, allergens: [], origin: 'Åhus, Svezia', alcPercent: 40, image: '' },
+    { id: 158, type: 'subcategory', name: { it: 'Rum', en: 'Rum', es: 'Ron', fr: 'Rhum', de: 'Rum', zh: '朗姆酒', ja: 'ラム' } },
+    { id: 159, name: { it: 'Havana Club Blanco' }, price: 6, allergens: [], origin: 'Cuba', alcPercent: 40, image: '' },
+    { id: 160, name: { it: 'Havana Club Añejo 7' }, price: 8, allergens: [], origin: 'Cuba', alcPercent: 40, image: '' },
+    { id: 161, type: 'subcategory', name: { it: 'Tequila & Mezcal', en: 'Tequila & Mezcal', es: 'Tequila y Mezcal', fr: 'Tequila & Mezcal', de: 'Tequila & Mezcal', zh: '龙舌兰和梅斯卡尔', ja: 'テキーラ＆メスカル' } },
+    { id: 162, name: { it: 'Altos Blanco' }, price: 7, allergens: [], origin: 'Jalisco, Messico', alcPercent: 38, image: '' },
+    { id: 163, name: { it: 'Altos Reposado' }, price: 8, allergens: [], origin: 'Jalisco, Messico', alcPercent: 38, image: '' },
+    { id: 164, name: { it: 'Mezcal' }, price: 8, allergens: [], origin: 'Oaxaca, Messico', alcPercent: 40, image: '' },
+    { id: 165, type: 'subcategory', name: { it: 'Whisky', en: 'Whisky', es: 'Whisky', fr: 'Whisky', de: 'Whisky', zh: '威士忌', ja: 'ウイスキー' } },
+    { id: 166, name: { it: "Ballantine's" }, price: 6, allergens: [], origin: 'Scozia', alcPercent: 40, image: '' },
+    { id: 167, name: { it: 'Jameson' }, price: 7, allergens: [], origin: 'Irlanda', alcPercent: 40, image: '' },
+    { id: 168, name: { it: 'Four Roses' }, price: 7, allergens: [], origin: 'Kentucky, USA', alcPercent: 40, image: '' },
+    { id: 169, type: 'subcategory', name: { it: 'Liquori', en: 'Liqueurs', es: 'Licores', fr: 'Liqueurs', de: 'Liköre', zh: '利口酒', ja: 'リキュール' } },
+    { id: 170, name: { it: 'Aperol' }, price: 5, allergens: [], origin: 'Padova, Italia', alcPercent: 11, image: '' },
+    { id: 171, name: { it: 'Campari' }, price: 5, allergens: [], origin: 'Milano, Italia', alcPercent: 25, image: '' },
+    { id: 172, name: { it: 'Select' }, price: 5, allergens: [], origin: 'Venezia, Italia', alcPercent: 17.5, image: '' },
+    { id: 173, name: { it: 'Italicus Bergamotto' }, price: 7, allergens: [], origin: 'Torino, Italia', alcPercent: 20, image: '' },
+    { id: 174, name: { it: 'Cointreau' }, price: 7, allergens: [], origin: 'Angers, Francia', alcPercent: 40, image: '' },
+    { id: 175, name: { it: 'Kahlua' }, price: 6, allergens: [], origin: 'Veracruz, Messico', alcPercent: 20, image: '' },
+    { id: 176, name: { it: 'Frangelico' }, price: 6, allergens: ['nuts'], origin: 'Canale, Piemonte', alcPercent: 20, image: '' },
+    { id: 177, name: { it: 'Malibu' }, price: 6, allergens: [], origin: 'Barbados', alcPercent: 21, image: '' },
+    { id: 178, name: { it: 'Midori' }, price: 6, allergens: [], origin: 'Giappone', alcPercent: 20, image: '' },
+    { id: 179, name: { it: 'Amaretto DiSaronno' }, price: 6, allergens: ['nuts'], origin: 'Saronno, Italia', alcPercent: 28, image: '' },
+    { id: 180, name: { it: 'Lillet Rouge' }, price: 6, allergens: ['sulfites'], origin: 'Podensac, Francia', alcPercent: 17, image: '' },
+    { id: 181, name: { it: 'Lillet Blanc' }, price: 6, allergens: ['sulfites'], origin: 'Podensac, Francia', alcPercent: 17, image: '' },
+    { id: 182, name: { it: 'Fior di Sambuco' }, price: 6, allergens: [], origin: 'Italia', alcPercent: 20, image: '' }
+  ],
+  amari: [
+    { id: 190, name: { it: 'Grappa', en: 'Grappa', es: 'Grappa', fr: 'Grappa', de: 'Grappa', zh: '格拉巴酒', ja: 'グラッパ' }, price: 6, allergens: ['sulfites'], origin: 'Italia', alcPercent: 40, image: '' },
+    { id: 191, name: { it: 'Limoncello', en: 'Limoncello', es: 'Limoncello', fr: 'Limoncello', de: 'Limoncello', zh: '柠檬酒', ja: 'リモンチェッロ' }, price: 5, allergens: [], origin: 'Costiera Amalfitana', alcPercent: 28, image: '' },
+    { id: 192, name: { it: 'Amaro Averna' }, price: 5, allergens: [], origin: 'Caltanissetta, Sicilia', alcPercent: 29, image: '' },
+    { id: 193, name: { it: 'Amaro Montenegro' }, price: 5, allergens: [], origin: 'Bologna, Italia', alcPercent: 23, image: '' },
+    { id: 194, name: { it: 'Fernet-Branca' }, price: 5, allergens: [], origin: 'Milano, Italia', alcPercent: 39, image: '' }
   ]
 };
 
@@ -401,7 +439,7 @@ function App() {
   const [expandedItems, setExpandedItems] = useState({});
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
-  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+  const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
   const isSunday = menuOverride === 'sunday' ? true : menuOverride === 'default' ? false : new Date().getDay() === 0;
   const activeMode = isSunday ? 'sunday' : 'default';
   const menu = menuData[activeMode] || defaultMenu;
@@ -482,6 +520,7 @@ function App() {
         beer: rawMenu.beer || defaultMenu.beer,
         cocktails: rawMenu.cocktails || defaultMenu.cocktails,
         spirits: rawMenu.spirits || defaultMenu.spirits,
+        amari: rawMenu.amari || defaultMenu.amari,
         _subcategories: rawMenu._subcategories || {}
       };
       dual = {
@@ -776,7 +815,8 @@ function App() {
 
   const _isWine = subCategory === 'wine';
   const _isBeer = subCategory === 'beer';
-  const _isCocktail = subCategory === 'cocktails' || subCategory === 'spirits';
+  const _isCocktail = subCategory === 'cocktails';
+  const _isSpirit = subCategory === 'spirits' || subCategory === 'amari';
 
   const renderSubHeader = (item, index) => {
     const displayName = item.name[lang] || item.name.it;
@@ -805,7 +845,10 @@ function App() {
       e('div', { style: { flex: 1, opacity: isUnavailable && !isAdmin ? 0.4 : 1 }},
         e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
           e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
-          e('span', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2))
+          e('div', { style: { textAlign: 'right', flexShrink: 0 }},
+            e('div', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2)),
+            item.price2 && e('div', { style: { fontSize: '13px', fontWeight: '500', color: '#718096', whiteSpace: 'nowrap', marginTop: '2px' }}, item.price2Label || '', ' \u20AC ', item.price2.toFixed(2))
+          )
         ),
         _isWine && (item.regione || item.cantina || item.volume) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
           item.cantina && e('span', null, item.cantina),
@@ -816,6 +859,10 @@ function App() {
           item.volume && e('span', null, item.volume, '% vol'),
           item.volumeCl && e('span', null, item.volumeCl, ' cl')
         ),
+        _isSpirit && (item.origin || item.alcPercent) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
+          item.origin && e('span', null, '\uD83D\uDCCD ', item.origin),
+          item.alcPercent && e('span', null, item.alcPercent, '% vol')
+        ),
         _isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '4px', fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}, item.description[lang] || item.description.it),
         item.flavorProfile && item.flavorProfile.length > 0 && e('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }},
           item.flavorProfile.map(f => e(FlavorTag, { key: f, type: f, lang }))
@@ -823,7 +870,7 @@ function App() {
         item.allergens && item.allergens.length > 0 && e('div', { style: { display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }},
           item.allergens.map(a => e(AllergenIcon, { key: a, type: a, lang }))
         ),
-        !_isWine && !_isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
+        !_isWine && !_isCocktail && !_isSpirit && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
           e('button', {
             onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
             style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }

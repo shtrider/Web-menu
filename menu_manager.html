@@ -101,9 +101,9 @@ const CATS = [
   { key: 'appetizers', it: 'Antipasti' }, { key: 'primi', it: 'Primi' }, { key: 'secondi', it: 'Secondi' },
   { key: 'contorni', it: 'Contorni' }, { key: 'dessert', it: 'Dolci' },
   { key: 'softdrinks', it: 'Bevande' }, { key: 'wine', it: 'Vini' }, { key: 'beer', it: 'Birre' },
-  { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Liquori' }
+  { key: 'cocktails', it: 'Cocktails' }, { key: 'spirits', it: 'Distillati e Liquori' }, { key: 'amari', it: 'Amari e Digestivi' }
 ];
-const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits'];
+const BAR_CATS = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari'];
 const LANGS = ['it', 'en', 'es', 'fr', 'de', 'zh', 'ja'];
 const FLAGS = { it: '🇮🇹', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷', de: '🇩🇪', zh: '🇨🇳', ja: '🇯🇵' };
 
@@ -149,7 +149,8 @@ const EditModal = ({ item, cat, onSave, onClose }) => {
   const [f, setF] = useState(JSON.parse(JSON.stringify(item)));
   const [translating, setTranslating] = useState(false);
   const isBar = BAR_CATS.includes(cat);
-  const isCocktail = cat === 'cocktails' || cat === 'spirits';
+  const isCocktail = cat === 'cocktails';
+  const isSpirit = cat === 'spirits' || cat === 'amari';
   const isSub = f.type === 'subcategory';
   const isWine = cat === 'wine';
   const isBeer = cat === 'beer';
@@ -202,6 +203,16 @@ const EditModal = ({ item, cat, onSave, onClose }) => {
         !isSub && e('div', { className: 'form-group' },
           e('label', null, 'Prezzo (€)'),
           e('input', { type: 'number', step: '0.5', value: f.price || 0, onChange: ev => setF(p => ({ ...p, price: parseFloat(ev.target.value) || 0 })), style: { width: 120 } })
+        ),
+        // Dual pricing (spirits)
+        !isSub && isSpirit && e('div', { style: { display: 'flex', gap: 12 } },
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Prezzo 2 (€)'), e('input', { type: 'number', step: '0.5', value: f.price2 || '', onChange: ev => setF(p => ({ ...p, price2: parseFloat(ev.target.value) || 0 })), placeholder: '0' })),
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Label Prezzo 2'), e('input', { value: f.price2Label || '', onChange: ev => setF(p => ({ ...p, price2Label: ev.target.value })), placeholder: 'es. G&T' }))
+        ),
+        // Origin & Alc% (spirits/amari)
+        !isSub && isSpirit && e('div', { style: { display: 'flex', gap: 12 } },
+          e('div', { className: 'form-group', style: { flex: 2 } }, e('label', null, 'Origine'), e('input', { value: f.origin || '', onChange: ev => setF(p => ({ ...p, origin: ev.target.value })), placeholder: 'es. Torino, Italia' })),
+          e('div', { className: 'form-group', style: { flex: 1 } }, e('label', null, 'Alc %'), e('input', { type: 'number', step: '0.1', value: f.alcPercent || '', onChange: ev => setF(p => ({ ...p, alcPercent: parseFloat(ev.target.value) || 0 })), placeholder: '40' }))
         ),
         // Description
         !isSub && e('div', { className: 'form-group' },
@@ -428,6 +439,7 @@ const App = () => {
           e('div', { className: 'item-info' },
             e('div', { className: 'item-name' + (isSub ? ' sub' : '') }, isSub ? ('📂 ' + (item.name.it || '')) : (item.name.it || '???')),
             !isSub && item.description && item.description.it && e('div', { className: 'item-desc' }, item.description.it),
+            !isSub && (item.origin || item.alcPercent) && e('div', { className: 'item-desc', style: { fontSize: 11, color: '#888' } }, [item.origin, item.alcPercent ? item.alcPercent + '%' : ''].filter(Boolean).join(' · ')),
             !isSub && e('div', { className: 'item-tags' },
               ...(item.allergens || []).map(a => e('span', { key: a, className: 'tag', style: { background: '#ebf8ff', color: '#2b6cb0', border: '1px solid #bee3f8' } }, ALLERGENS[a] || a)),
               ...(item.flavorProfile || []).map(f => {
@@ -437,7 +449,7 @@ const App = () => {
             )
           ),
           // Price
-          !isSub && e('div', { className: 'item-price' }, '€' + (item.price || 0).toFixed(2)),
+          !isSub && e('div', { className: 'item-price' }, '€' + (item.price || 0).toFixed(2), item.price2 ? e('div', { style: { fontSize: 11, color: '#888' } }, (item.price2Label || '') + ' €' + item.price2.toFixed(2)) : null),
           // Actions
           e('div', { className: 'item-actions' },
             e('button', { onClick: () => setEditItem(item), title: 'Modifica' }, '✏️'),
