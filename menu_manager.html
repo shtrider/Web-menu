@@ -354,14 +354,19 @@ const App = () => {
     if (!name || !name.trim()) return;
     const newSub = { id: getMaxId() + 1, type: 'subcategory', name: { it: name.trim() } };
     updateItems([...items, newSub]);
-    // Auto-translate
+    // Auto-translate (use functional updater to avoid stale closure)
+    const _mode = mode, _cat = cat;
     fetch(SUPABASE_URL + '/functions/v1/translate', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
       body: JSON.stringify({ texts: [{ text: name.trim(), id: 'sub' }] })
     }).then(r => r.json()).then(data => {
       if (data.results && data.results.sub) {
         const translated = { it: name.trim(), ...data.results.sub };
-        updateItems((menuData[mode][cat] || []).map(i => i.id === newSub.id ? { ...i, name: translated } : i));
+        setMenuData(prev => {
+          const currentItems = (prev[_mode] && prev[_mode][_cat]) || [];
+          return { ...prev, [_mode]: { ...prev[_mode], [_cat]: currentItems.map(i => i.id === newSub.id ? { ...i, name: translated } : i) } };
+        });
+        setDirty(true);
       }
     }).catch(() => {});
   };
