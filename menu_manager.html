@@ -413,9 +413,9 @@ const App = () => {
         let needsSync = false;
         ['default', 'sunday'].forEach(mk => {
           if (!m[mk]) return;
-          if (!m[mk].spirits || m[mk].spirits.length < DEFAULT_SPIRITS.length) { m[mk].spirits = DEFAULT_SPIRITS; needsSync = true; }
-          if (!m[mk].amari || m[mk].amari.length < DEFAULT_AMARI.length) { m[mk].amari = DEFAULT_AMARI; needsSync = true; }
-          if (!m[mk].caffetteria || m[mk].caffetteria.length < DEFAULT_CAFFETTERIA.length) { m[mk].caffetteria = DEFAULT_CAFFETTERIA; needsSync = true; }
+          if (!m[mk].spirits || m[mk].spirits.length === 0) { m[mk].spirits = DEFAULT_SPIRITS; needsSync = true; }
+          if (!m[mk].amari || m[mk].amari.length === 0) { m[mk].amari = DEFAULT_AMARI; needsSync = true; }
+          if (!m[mk].caffetteria || m[mk].caffetteria.length === 0) { m[mk].caffetteria = DEFAULT_CAFFETTERIA; needsSync = true; }
         });
         setMenuData(m);
         setSpecials(sp);
