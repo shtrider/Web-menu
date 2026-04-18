@@ -11,17 +11,18 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Georgia', serif; background: linear-gradient(135deg, #fff8f5 0%, #fff 100%); min-height: 100vh; padding-bottom: 70px; }
+    body { font-family: 'Inter', sans-serif; color: #2d3748; background: linear-gradient(135deg, #fff8f5 0%, #fff 100%); min-height: 100vh; padding-bottom: 70px; }
     .loading-screen { position: fixed; inset: 0; background: #ca4d4f; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-    .loading-screen h1 { color: #fff; font-size: 32px; margin-bottom: 20px; }
+    .loading-screen h1 { color: #fff; font-size: 32px; margin-bottom: 20px; font-family: 'Fraunces', serif; font-style: italic; }
     .loading-screen .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .cat-pills::-webkit-scrollbar { display: none; }
     .cat-pills { scrollbar-width: none; -ms-overflow-style: none; }
     button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    h1, h2, h3, h4 { font-family: 'Fraunces', serif; }
     @media (max-width: 600px) {
       main { padding: 12px !important; }
       main h2 { font-size: 22px !important; }
@@ -486,7 +487,7 @@ function App() {
     const displayName = item.name[lang] || item.name.it;
     return e('div', {
       key: 'subhdr-' + item.id,
-      style: { padding: '10px 16px', borderLeft: '4px solid ' + theme.accent, background: theme.catBg, borderRadius: '0 8px 8px 0', fontSize: '17px', fontWeight: '600', color: theme.accent }
+      style: { padding: '16px 4px 4px', marginTop: '12px', borderBottom: '1px solid ' + theme.navBorder, fontFamily: "'Caveat', cursive", fontSize: '24px', fontWeight: '700', color: theme.accent, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
     }, displayName);
   };
 
@@ -494,20 +495,20 @@ function App() {
     const isUnavailable = unavailableItems.includes(item.id);
     return e('div', {
       key: item.id,
-      style: { background: theme.cardBg, borderRadius: '12px', padding: 'clamp(14px, 3vw, 20px)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid ' + theme.cardBorder, display: 'flex', gap: '16px', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }
+      style: { background: 'transparent', padding: '18px 4px', borderBottom: '1px dashed ' + theme.navBorder, display: 'flex', gap: '14px', alignItems: 'flex-start', position: 'relative' }
     },
-      isUnavailable && e('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '12px' }},
+      isUnavailable && e('div', { style: { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, borderRadius: '8px' }},
         e('span', { style: { color: '#fff', fontSize: '22px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '1px 1px 4px rgba(0,0,0,0.5)', transform: 'rotate(-8deg)' }}, unavailableText[lang] || unavailableText.it)
       ),
       _isWine && item.serving && e('img', { src: 'icons/wine-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       _isBeer && item.serving && e('img', { src: 'icons/beer-' + item.serving + '.svg', alt: item.serving, width: 32, height: 32, style: { alignSelf: 'center', opacity: 0.8 }}),
       barCats.includes(subCategory) && lang !== 'it' && isSafeUrl(item.image) && e('img', { src: item.image, style: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', opacity: isUnavailable ? 0.4 : 1 }, referrerPolicy: 'no-referrer' }),
       e('div', { style: { flex: 1, opacity: isUnavailable ? 0.4 : 1 }},
-        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }},
-          e('h3', { style: { margin: 0, fontSize: '16px', fontWeight: '500', color: theme.titleColor, flex: 1, paddingRight: '16px' }}, item.name[lang] || item.name.it),
+        e('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px', gap: '14px' }},
+          e('h3', { style: { margin: 0, fontFamily: "'Fraunces', serif", fontSize: '16.5px', fontWeight: '500', lineHeight: '1.35', color: theme.titleColor, flex: 1 }}, item.name[lang] || item.name.it),
           e('div', { style: { textAlign: 'right', flexShrink: 0 }},
-            e('div', { style: { fontSize: '18px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2)),
-            item.price2 && e('div', { style: { fontSize: '13px', fontWeight: '500', color: '#718096', whiteSpace: 'nowrap', marginTop: '2px' }}, item.price2Label || '', ' \u20AC ', item.price2.toFixed(2))
+            e('div', { style: { fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: '600', color: theme.priceColor, whiteSpace: 'nowrap' }}, '\u20AC ', (item.price || 0).toFixed(2)),
+            item.price2 && e('div', { style: { fontFamily: "'Fraunces', serif", fontSize: '13px', fontWeight: '500', color: '#718096', whiteSpace: 'nowrap', marginTop: '2px' }}, item.price2Label || '', ' \u20AC ', item.price2.toFixed(2))
           )
         ),
         _isWine && (item.regione || item.cantina || item.volume) && e('div', { style: { display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px', fontSize: '13px', color: '#718096', fontStyle: 'italic' }},
@@ -523,7 +524,7 @@ function App() {
           item.origin && e('span', null, '\uD83D\uDCCD ', item.origin),
           item.alcPercent && e('span', null, item.alcPercent, '% vol')
         ),
-        _isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '4px', fontSize: '13px', color: '#a0aec0', fontStyle: 'italic' }}, item.description[lang] || item.description.it),
+        _isCocktail && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '4px', fontFamily: "'Fraunces', serif", fontSize: '13.5px', color: '#718096', fontStyle: 'italic' }}, item.description[lang] || item.description.it),
         item.flavorProfile && item.flavorProfile.length > 0 && e('div', { style: { display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }},
           item.flavorProfile.map(f => e(FlavorTag, { key: f, type: f, lang }))
         ),
@@ -533,10 +534,10 @@ function App() {
         !_isWine && !_isCocktail && !_isSpirit && item.description && (item.description[lang] || item.description.it) && e('div', { style: { marginTop: '8px' }},
           e('button', {
             onClick: () => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] })),
-            style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
+            style: { background: 'none', border: 'none', cursor: 'pointer', color: theme.accent, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: '13px', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }
           }, expandedItems[item.id] ? '\u25B2' : '\u25BC', ' ', expandedItems[item.id] ? (lang === 'it' ? 'Nascondi' : 'Hide') : (lang === 'it' ? 'Dettagli' : lang === 'es' ? 'Detalles' : lang === 'fr' ? 'Détails' : lang === 'de' ? 'Details' : lang === 'zh' ? '\u8BE6\u60C5' : lang === 'ja' ? '\u8A73\u7D30' : 'Details')),
-          expandedItems[item.id] && e('div', { style: { marginTop: '8px', padding: '12px', background: theme.catBg, borderRadius: '8px', border: '1px solid ' + theme.cardBorder }},
-            e('p', { style: { margin: 0, fontSize: '14px', color: '#4a5568', lineHeight: '1.6' }}, item.description[lang] || item.description.it),
+          expandedItems[item.id] && e('div', { style: { marginTop: '8px', padding: '12px 14px', background: theme.catBg, borderRadius: '8px', border: '1px dashed ' + theme.cardBorder }},
+            e('p', { style: { margin: 0, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: '14px', color: '#4a5568', lineHeight: '1.6' }}, item.description[lang] || item.description.it),
             lang !== 'it' && isSafeUrl(item.image) && e('div', { style: { marginTop: '10px' }},
               e('img', { src: item.image, style: { width: '100%', maxWidth: '300px', height: 'auto', borderRadius: '8px', display: 'block' }, referrerPolicy: 'no-referrer' }),
               e('p', { style: { margin: '6px 0 0', fontSize: '11px', color: '#a0aec0', fontStyle: 'italic' }}, { en: 'Image for illustration purposes only. Actual plating may vary.', es: 'Imagen solo con fines ilustrativos. La presentación real puede variar.', fr: 'Image à titre indicatif uniquement. La présentation réelle peut varier.', de: 'Bild dient nur zur Veranschaulichung. Das tatsächliche Gericht kann abweichen.', zh: '图片仅供参考，实际摆盘可能有所不同。', ja: '画像はイメージです。実際の盛り付けは異なる場合があります。' }[lang] || 'Image for illustration purposes only.')
@@ -547,28 +548,34 @@ function App() {
     );
   };
 
-  return e('div', { style: { fontFamily: "'Georgia', serif", minHeight: '100vh', background: theme.bg }},
+  return e('div', { style: { fontFamily: "'Inter', sans-serif", minHeight: '100vh', background: theme.bg }},
     e('header', { style: { background: theme.header, padding: scrolled ? '0px' : '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', transition: 'padding 0.25s ease', overflow: 'hidden', maxHeight: scrolled ? '0px' : '200px' }},
       e('img', { src: 'logo.png', alt: 'Borgo della Mistica', style: { height: '60px', objectFit: 'contain' }})
     ),
 
     e('div', { style: { position: 'sticky', top: 0, zIndex: 50 }},
-      e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }},
-        e('div', { style: { display: 'flex', gap: '0' }},
+      e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }},
+        e('div', { style: { display: 'flex', gap: '10px', flex: 1 }},
           e('button', {
             onClick: () => setMainTab('kitchen'),
-            style: { padding: '12px 16px', border: 'none', background: mainTab === 'kitchen' ? theme.tabActive : 'transparent', color: mainTab === 'kitchen' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
-          }, '\uD83C\uDF7D\uFE0F ', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
+            style: { padding: '8px 18px 10px', border: mainTab === 'kitchen' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'kitchen' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'kitchen' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'kitchen' ? '0 1 auto' : 1 }
+          },
+            lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen',
+            mainTab === 'kitchen' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
+          ),
           e('button', {
             onClick: () => setMainTab('bar'),
-            style: { padding: '12px 16px', border: 'none', background: mainTab === 'bar' ? theme.tabActive : 'transparent', color: mainTab === 'bar' ? '#fff' : '#333', cursor: 'pointer', fontSize: '15px', fontWeight: '600', borderRadius: '0', whiteSpace: 'nowrap' }
-          }, '\uD83C\uDF78 Bar')
+            style: { padding: '8px 18px 10px', border: mainTab === 'bar' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'bar' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'bar' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'bar' ? '0 1 auto' : 1 }
+          },
+            'Bar',
+            mainTab === 'bar' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
+          )
         ),
         e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
           e('div', { style: { position: 'relative' }},
             e('button', {
               onClick: () => setShowLangMenu(!showLangMenu),
-              style: { background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }
+              style: { background: '#fff', border: '1px solid ' + theme.navBorder, borderRadius: '999px', padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }
             }, LANGUAGES.find(l => l.code === lang)?.flag),
             showLangMenu && e('div', {
               onClick: () => setShowLangMenu(false),
@@ -587,12 +594,12 @@ function App() {
         )
       ),
 
-      e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '10px 24px', background: theme.catBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
+      e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '12px 20px', background: theme.navBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
         (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
           e('button', {
             key: cat,
             onClick: () => setSubCategory(cat),
-            style: { padding: '10px 20px', border: subCategory === cat ? '2px solid ' + theme.catBorder : '1px solid ' + theme.navBorder, background: '#fff', color: subCategory === cat ? theme.accent : '#666', cursor: 'pointer', borderRadius: '24px', fontSize: '14px', fontWeight: subCategory === cat ? '600' : '400', whiteSpace: 'nowrap', flexShrink: 0 }
+            style: { padding: '8px 16px', border: '1.5px solid ' + (subCategory === cat ? theme.tabActive : '#e8c9a0'), background: subCategory === cat ? theme.tabActive : '#fff', color: subCategory === cat ? '#fff' : '#4a5568', cursor: 'pointer', borderRadius: '999px', fontFamily: "'Fraunces', serif", fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', flexShrink: 0, letterSpacing: '0.3px' }
           }, CATEGORY_NAMES[cat]?.[lang] || cat)
         )
       )
@@ -600,17 +607,20 @@ function App() {
     renderCoperto(2),
     renderCoperto(5),
 
-    e('main', { style: { padding: '24px', maxWidth: '900px', margin: '0 auto' }},
-      e('h2', { style: { margin: '0 0 20px', color: theme.accent, fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: '600' }}, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+    e('main', { style: { padding: '28px 20px', maxWidth: '720px', margin: '0 auto' }},
+      e('h2', { style: { margin: '0 0 20px', color: theme.accent, fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: 'clamp(28px, 6vw, 36px)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '14px' }},
+        e('span', null, CATEGORY_NAMES[subCategory]?.[lang] || subCategory),
+        e('span', { style: { flex: 1, height: '1px', backgroundImage: 'linear-gradient(to right, ' + theme.navBorder + ' 50%, transparent 50%)', backgroundSize: '8px 1px' }})
+      ),
 
       renderCoperto(3),
       e('div', { style: { display: 'flex', flexDirection: 'column', gap: '12px' }},
         currentItems.map((item) => item.type === 'subcategory' ? renderSubHeader(item) : renderItemCard(item))
       ),
 
-      e('div', { style: { marginTop: '32px', padding: '16px', background: theme.legendBg, borderRadius: '12px' }},
+      e('div', { style: { marginTop: '36px', padding: '18px', background: theme.legendBg, border: '1px dashed ' + theme.navBorder, borderRadius: '10px' }},
         renderCoperto(4),
-        e('h4', { style: { margin: '0 0 12px', fontSize: '14px', color: '#718096' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
+        e('h4', { style: { margin: '0 0 12px', fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontSize: '16px', color: theme.accent, fontWeight: '600' }}, lang === 'it' ? 'Allergeni' : lang === 'es' ? 'Leyenda de Alérgenos' : lang === 'fr' ? 'Légende des Allergènes' : lang === 'de' ? 'Allergen-Legende' : lang === 'zh' ? '过敏原说明' : lang === 'ja' ? 'アレルゲン一覧' : 'Allergen Legend'),
         e('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' }},
           Object.entries(ALLERGENS).map(([key, val]) =>
             e('span', { key, style: { fontSize: '12px', color: '#4a5568', display: 'flex', alignItems: 'center', gap: '6px' }},
