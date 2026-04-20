@@ -156,7 +156,8 @@ const CATEGORY_NAMES = {
   cocktails: { it: 'Cocktails', en: 'Cocktails', es: 'Cócteles', fr: 'Cocktails', de: 'Cocktails', zh: '鸡尾酒', ja: 'カクテル' },
   spirits: { it: 'Distillati e Liquori', en: 'Spirits & Liqueurs', es: 'Destilados y Licores', fr: 'Spiritueux et Liqueurs', de: 'Spirituosen & Liköre', zh: '烈酒与利口酒', ja: 'スピリッツ＆リキュール' },
   amari: { it: 'Amari e Digestivi', en: 'Bitters & Digestifs', es: 'Amargos y Digestivos', fr: 'Amers et Digestifs', de: 'Bitter & Digestifs', zh: '苦酒与餐后酒', ja: 'アマーリ＆ディジェスティーヴォ' },
-  caffetteria: { it: 'Caffetteria', en: 'Coffee', es: 'Cafetería', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' }
+  caffetteria: { it: 'Caffetteria', en: 'Coffee', es: 'Cafetería', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' },
+  aperitivo: { it: 'Menu Aperitivo', en: 'Aperitivo Menu', es: 'Menú Aperitivo', fr: 'Menu Apéritif', de: 'Aperitivo-Menü', zh: '开胃菜单', ja: 'アペリティーボメニュー' }
 };
 
 const RESERVE_TEXT = {
@@ -328,6 +329,12 @@ const defaultMenu = {
     { id: 223, name: { it: 'Caffè Latte', en: 'Caffè Latte', es: 'Café con Leche', fr: 'Café au Lait', de: 'Milchkaffee', zh: '拿铁咖啡', ja: 'カフェラテ' }, price: 2, allergens: ['dairy'], image: '' },
     { id: 224, name: { it: 'Ginseng', en: 'Ginseng Coffee', es: 'Café de Ginseng', fr: 'Café au Ginseng', de: 'Ginseng Kaffee', zh: '人参咖啡', ja: 'ジンセンコーヒー' }, price: 2.5, allergens: [], image: '' },
     { id: 225, name: { it: 'Orzo', en: 'Barley Coffee', es: 'Café de Cebada', fr: 'Café d\'Orge', de: 'Gerstenkaffee', zh: '大麦咖啡', ja: '麦コーヒー' }, price: 2, allergens: ['gluten'], image: '' }
+  ],
+  aperitivo: [
+    { id: 601, name: { it: 'Pinsa bianca con crudo' }, price: 8, allergens: ['gluten', 'dairy', 'pork'], description: { it: '' } },
+    { id: 602, name: { it: 'Pinsa Margherita' }, price: 8, allergens: ['gluten', 'dairy'], description: { it: '' } },
+    { id: 603, name: { it: 'Sfoglie di patatine fritte sale e pepe' }, price: 5, allergens: [], description: { it: '' } },
+    { id: 604, name: { it: 'Mix di fritti' }, price: 7, allergens: ['gluten'], description: { it: '' } }
   ]
 };
 
@@ -349,6 +356,7 @@ function App() {
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari', 'caffetteria'];
+  const aperitivoCats = ['aperitivo'];
 
   const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
@@ -417,6 +425,7 @@ function App() {
           } else {
             menu = rawMenu;
           }
+          if (!menu.aperitivo) menu.aperitivo = defaultMenu.aperitivo;
           if (rawMenu._coperto) setCoperto(rawMenu._coperto);
           setMenuData(inlineSubcategories(menu));
         }
@@ -442,6 +451,8 @@ function App() {
       setSubCategory('appetizers');
     } else if (mainTab === 'bar' && !barCats.includes(subCategory)) {
       setSubCategory('softdrinks');
+    } else if (mainTab === 'aperitivo' && !aperitivoCats.includes(subCategory)) {
+      setSubCategory('aperitivo');
     }
   }, [mainTab]);
 
@@ -559,6 +570,13 @@ function App() {
           },
             'Bar',
             mainTab === 'bar' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
+          ),
+          e('button', {
+            onClick: () => setMainTab('aperitivo'),
+            style: { padding: '8px 14px 10px', border: mainTab === 'aperitivo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'aperitivo' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'aperitivo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'aperitivo' ? '0 1 auto' : 1 }
+          },
+            'Aperitivo',
+            mainTab === 'aperitivo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
           )
         ),
         e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
@@ -585,7 +603,7 @@ function App() {
       ),
 
       e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '12px 20px', background: theme.navBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
-        (mainTab === 'kitchen' ? kitchenCats : barCats).map(cat =>
+        (mainTab === 'kitchen' ? kitchenCats : mainTab === 'bar' ? barCats : aperitivoCats).map(cat =>
           e('button', {
             key: cat,
             onClick: () => setSubCategory(cat),
