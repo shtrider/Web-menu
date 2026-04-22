@@ -465,6 +465,16 @@ function App() {
     const mins = now.getHours() * 60 + now.getMinutes();
     return (mins >= 18 * 60 && mins <= 19 * 60 + 30) ? 'aperitivo' : 'kitchen';
   });
+  const [nowTick, setNowTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(n => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const aperitivoHidden = (() => {
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    return mins >= 19 * 60 + 30 && mins < 23 * 60;
+  })();
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPinHash, setAdminPinHash] = useState(null);
@@ -855,6 +865,10 @@ function App() {
   }, [mainTab]);
 
   useEffect(() => {
+    if (aperitivoHidden && mainTab === 'aperitivo' && !isAdmin) setMainTab('kitchen');
+  }, [aperitivoHidden, mainTab, isAdmin]);
+
+  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -1033,9 +1047,9 @@ function App() {
             'Bar',
             mainTab === 'bar' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
           ),
-          e('button', {
+          (!aperitivoHidden || isAdmin) && e('button', {
             onClick: () => setMainTab('aperitivo'),
-            style: { padding: '8px 14px 10px', border: mainTab === 'aperitivo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'aperitivo' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'aperitivo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'aperitivo' ? '0 1 auto' : 1 }
+            style: { padding: '8px 14px 10px', border: mainTab === 'aperitivo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'aperitivo' ? theme.accent : (aperitivoHidden ? '#a0aec0' : '#4a5568'), cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'aperitivo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'aperitivo' ? '0 1 auto' : 1, opacity: aperitivoHidden ? 0.6 : 1 }
           },
             'Aperitivo',
             mainTab === 'aperitivo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
