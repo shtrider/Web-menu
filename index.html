@@ -470,11 +470,6 @@ function App() {
     const t = setInterval(() => setNowTick(n => n + 1), 60000);
     return () => clearInterval(t);
   }, []);
-  const aperitivoHidden = (() => {
-    const now = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    return mins >= 19 * 60 + 30 && mins < 23 * 60;
-  })();
   const [subCategory, setSubCategory] = useState('appetizers');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPinHash, setAdminPinHash] = useState(null);
@@ -504,6 +499,11 @@ function App() {
   const aperitivoCats = ['aperitivo'];
 
   const isSunday = menuOverride === 'sunday' ? true : menuOverride === 'default' ? false : new Date().getDay() === 0;
+  const aperitivoHidden = isSunday || (() => {
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    return mins >= 19 * 60 + 30 && mins < 23 * 60;
+  })();
   const _copertoShow = coperto && coperto.enabled && !isSunday && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
     if (!_copertoShow || coperto.style !== style) return null;
