@@ -370,8 +370,8 @@ function App() {
   const [mainTab, setMainTab] = useState(() => {
     const now = new Date();
     const mins = now.getHours() * 60 + now.getMinutes();
-    if (mins >= 10 * 60 && mins < 15 * 60) return 'pranzo';
-    if (mins >= 18 * 60 && mins <= 19 * 60 + 30) return 'aperitivo';
+    if (mins >= 12 * 60 && mins < 15 * 60) return 'pranzo';
+    if (mins >= 17 * 60 + 30 && mins < 19 * 60 + 30) return 'aperitivo';
     return 'kitchen';
   });
   const [subCategory, setSubCategory] = useState('appetizers');
@@ -391,11 +391,6 @@ function App() {
     const t = setInterval(() => setNowTick(n => n + 1), 60000);
     return () => clearInterval(t);
   }, []);
-  const pranzoHidden = (() => {
-    const now = new Date();
-    const mins = now.getHours() * 60 + now.getMinutes();
-    return !(mins >= 10 * 60 && mins < 15 * 60);
-  })();
 
   const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
@@ -503,9 +498,6 @@ function App() {
     }
   }, [mainTab]);
 
-  useEffect(() => {
-    if (pranzoHidden && mainTab === 'pranzo') setMainTab('kitchen');
-  }, [pranzoHidden, mainTab]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -612,34 +604,23 @@ function App() {
     e('div', { style: { position: 'sticky', top: 0, zIndex: 50 }},
       e('nav', { style: { background: theme.navBg, borderBottom: '1px solid ' + theme.navBorder, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }},
         e('div', { style: { display: 'flex', gap: '10px', flex: 1 }},
-          e('button', {
-            onClick: () => setMainTab('kitchen'),
-            style: { padding: '8px 18px 10px', border: mainTab === 'kitchen' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'kitchen' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'kitchen' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'kitchen' ? '0 1 auto' : 1 }
-          },
-            lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen',
-            mainTab === 'kitchen' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
-          ),
-          e('button', {
-            onClick: () => setMainTab('bar'),
-            style: { padding: '8px 18px 10px', border: mainTab === 'bar' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'bar' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'bar' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'bar' ? '0 1 auto' : 1 }
-          },
-            'Bar',
-            mainTab === 'bar' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
-          ),
-          e('button', {
-            onClick: () => setMainTab('aperitivo'),
-            style: { padding: '8px 14px 10px', border: mainTab === 'aperitivo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'aperitivo' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'aperitivo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'aperitivo' ? '0 1 auto' : 1 }
-          },
-            'Aperitivo',
-            mainTab === 'aperitivo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
-          ),
-          !pranzoHidden && e('button', {
-            onClick: () => setMainTab('pranzo'),
-            style: { padding: '8px 14px 10px', border: mainTab === 'pranzo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'pranzo' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'pranzo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'pranzo' ? '0 1 auto' : 1 }
-          },
-            'Pranzo',
-            mainTab === 'pranzo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
-          )
+          (() => {
+            const tabBtn = (key, label, time) => e('button', {
+              key,
+              onClick: () => setMainTab(key),
+              style: { padding: time ? '4px 12px 8px' : '8px 14px 10px', border: mainTab === key ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === key ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontWeight: mainTab === key ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.3px', position: 'relative', flex: mainTab === key ? '0 1 auto' : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.1, minWidth: time ? '78px' : 'auto' }
+            },
+              e('span', { style: { fontSize: '15px' }}, label),
+              time && e('span', { style: { fontSize: '10px', fontWeight: 500, color: mainTab === key ? theme.accent : '#a0aec0', marginTop: '2px', letterSpacing: '0.2px' }}, time),
+              mainTab === key && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
+            );
+            return [
+              tabBtn('kitchen', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
+              tabBtn('bar', 'Bar'),
+              tabBtn('pranzo', lang === 'it' ? 'Pranzo' : lang === 'es' ? 'Almuerzo' : lang === 'fr' ? 'Déjeuner' : lang === 'de' ? 'Mittag' : lang === 'zh' ? '午餐' : lang === 'ja' ? 'ランチ' : 'Lunch', '12–15'),
+              tabBtn('aperitivo', 'Aperitivo', '17:30–19:30')
+            ];
+          })()
         ),
         e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
           e('div', { style: { position: 'relative' }},
