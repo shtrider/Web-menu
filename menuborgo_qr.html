@@ -157,7 +157,8 @@ const CATEGORY_NAMES = {
   spirits: { it: 'Distillati e Liquori', en: 'Spirits & Liqueurs', es: 'Destilados y Licores', fr: 'Spiritueux et Liqueurs', de: 'Spirituosen & Liköre', zh: '烈酒与利口酒', ja: 'スピリッツ＆リキュール' },
   amari: { it: 'Amari e Digestivi', en: 'Bitters & Digestifs', es: 'Amargos y Digestivos', fr: 'Amers et Digestifs', de: 'Bitter & Digestifs', zh: '苦酒与餐后酒', ja: 'アマーリ＆ディジェスティーヴォ' },
   caffetteria: { it: 'Caffetteria', en: 'Coffee', es: 'Cafetería', fr: 'Café', de: 'Kaffee', zh: '咖啡', ja: 'コーヒー' },
-  aperitivo: { it: 'Menu Aperitivo', en: 'Aperitivo Menu', es: 'Menú Aperitivo', fr: 'Menu Apéritif', de: 'Aperitivo-Menü', zh: '开胃菜单', ja: 'アペリティーボメニュー' }
+  aperitivo: { it: 'Menu Aperitivo', en: 'Aperitivo Menu', es: 'Menú Aperitivo', fr: 'Menu Apéritif', de: 'Aperitivo-Menü', zh: '开胃菜单', ja: 'アペリティーボメニュー' },
+  pranzo: { it: 'Menu Pranzo', en: 'Lunch Menu', es: 'Menú Almuerzo', fr: 'Menu Déjeuner', de: 'Mittagsmenü', zh: '午餐菜单', ja: 'ランチメニュー' }
 };
 
 const RESERVE_TEXT = {
@@ -335,6 +336,25 @@ const defaultMenu = {
     { id: 602, name: { it: 'Pinsa Margherita' }, price: 8, allergens: ['gluten', 'dairy'], description: { it: '' } },
     { id: 603, name: { it: 'Sfoglie di patatine fritte sale e pepe' }, price: 5, allergens: [], description: { it: '' } },
     { id: 604, name: { it: 'Mix di fritti' }, price: 7, allergens: ['gluten'], description: { it: '' } }
+  ],
+  pranzo: [
+    { id: 700, type: 'subcategory', name: { it: 'I Borghetti', en: 'I Borghetti', es: 'I Borghetti', fr: 'I Borghetti', de: 'I Borghetti', zh: 'I Borghetti', ja: 'I Borghetti' } },
+    { id: 701, name: { it: 'Bufalino' }, price: 7, allergens: ['gluten', 'dairy'], description: { it: 'Mozzarella di Bufala, Pomodoro cuore di bue' } },
+    { id: 702, name: { it: 'Pork' }, price: 8, allergens: ['gluten', 'pork'], description: { it: 'Pulled Pork, Salsa BBQ' } },
+    { id: 703, name: { it: 'Goloso' }, price: 7, allergens: ['gluten', 'dairy', 'nuts', 'pork'], description: { it: 'Mortadella, Stracciatella, Pistacchi' } },
+    { id: 710, type: 'subcategory', name: { it: 'Bowl e Salads', en: 'Bowls & Salads', es: 'Bowls y Ensaladas', fr: 'Bowls et Salades', de: 'Bowls & Salate', zh: '碗盘与沙拉', ja: 'ボウル＆サラダ' } },
+    { id: 711, name: { it: 'Caesar' }, price: 12, allergens: ['gluten', 'eggs', 'fish', 'dairy', 'mustard'], description: { it: 'Lattuga Romana, Pollo, Grana, Crostini, Uovo, Salsa Caesar' } },
+    { id: 712, name: { it: 'Mediterranea' }, price: 12, allergens: ['gluten', 'dairy'], description: { it: 'Pomodori, Cetrioli, Peperoni, Olive, Feta, Origano' } },
+    { id: 713, name: { it: 'Salmon' }, price: 14, allergens: ['gluten', 'fish', 'nuts'], description: { it: 'Riso Venere, Salmone affumicato, Avocado, Datterino, Carote, Mandorle' } },
+    { id: 720, type: 'subcategory', name: { it: 'Dalla Cucina', en: 'From the Kitchen', es: 'De la Cocina', fr: 'De la Cuisine', de: 'Aus der Küche', zh: '来自厨房', ja: 'キッチンから' } },
+    { id: 721, name: { it: 'Gnocchetti di patate al pomodoro e Basilico' }, price: 8, allergens: ['gluten'], description: { it: '' } },
+    { id: 722, name: { it: 'Spiedini di Pollo in Salsa Yogurt e Misticanza' }, price: 12, allergens: ['gluten', 'nuts', 'dairy'], description: { it: '' } },
+    { id: 730, type: 'subcategory', name: { it: 'Fritti', en: 'Fried', es: 'Fritos', fr: 'Fritures', de: 'Frittiertes', zh: '炸物', ja: 'フライ' } },
+    { id: 731, name: { it: 'Chicken strips e Patatine fritte' }, price: 7, allergens: ['gluten'], description: { it: '' } },
+    { id: 732, name: { it: 'Patatine fritte' }, price: 5, allergens: ['gluten'], description: { it: '' } },
+    { id: 733, name: { it: 'Fritto Misto' }, price: 7, allergens: ['gluten', 'dairy', 'eggs'], description: { it: 'Mini supplì cacio e pepe, mini supplì carbonara, fiore di zucca, crocchetta di patate, polpetta di melanzane' } },
+    { id: 740, type: 'subcategory', name: { it: 'Dolci', en: 'Desserts', es: 'Postres', fr: 'Desserts', de: 'Desserts', zh: '甜点', ja: 'デザート' } },
+    { id: 741, name: { it: 'Fruit Salad' }, price: 5, allergens: ['nuts'], description: { it: 'Macedonia di frutta fresca' } }
   ]
 };
 
@@ -347,7 +367,13 @@ function App() {
     const bl = (navigator.language || '').split('-')[0].toLowerCase();
     return ['it','en','es','fr','de','zh','ja'].includes(bl) ? bl : 'it';
   });
-  const [mainTab, setMainTab] = useState('kitchen');
+  const [mainTab, setMainTab] = useState(() => {
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    if (mins >= 10 * 60 && mins < 15 * 60) return 'pranzo';
+    if (mins >= 18 * 60 && mins <= 19 * 60 + 30) return 'aperitivo';
+    return 'kitchen';
+  });
   const [subCategory, setSubCategory] = useState('appetizers');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -358,6 +384,18 @@ function App() {
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari', 'caffetteria'];
   const aperitivoCats = ['aperitivo'];
+  const pranzoCats = ['pranzo'];
+
+  const [nowTick, setNowTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(n => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const pranzoHidden = (() => {
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    return !(mins >= 10 * 60 && mins < 15 * 60);
+  })();
 
   const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
@@ -428,6 +466,7 @@ function App() {
             menu = rawMenu;
           }
           if (!menu.aperitivo) menu.aperitivo = defaultMenu.aperitivo;
+          if (!menu.pranzo) menu.pranzo = defaultMenu.pranzo;
           setMenuData(inlineSubcategories(menu));
           if (rawMenu._coperto) setCoperto(rawMenu._coperto);
 
@@ -459,8 +498,14 @@ function App() {
       setSubCategory('softdrinks');
     } else if (mainTab === 'aperitivo' && !aperitivoCats.includes(subCategory)) {
       setSubCategory('aperitivo');
+    } else if (mainTab === 'pranzo' && !pranzoCats.includes(subCategory)) {
+      setSubCategory('pranzo');
     }
   }, [mainTab]);
+
+  useEffect(() => {
+    if (pranzoHidden && mainTab === 'pranzo') setMainTab('kitchen');
+  }, [pranzoHidden, mainTab]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -587,6 +632,13 @@ function App() {
           },
             'Aperitivo',
             mainTab === 'aperitivo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
+          ),
+          !pranzoHidden && e('button', {
+            onClick: () => setMainTab('pranzo'),
+            style: { padding: '8px 14px 10px', border: mainTab === 'pranzo' ? '2px solid transparent' : '1.5px solid #e8c9a0', background: 'transparent', color: mainTab === 'pranzo' ? theme.accent : '#4a5568', cursor: 'pointer', fontFamily: "'Fraunces', serif", fontSize: '17px', fontWeight: mainTab === 'pranzo' ? '600' : '500', borderRadius: '10px', whiteSpace: 'nowrap', letterSpacing: '0.5px', position: 'relative', flex: mainTab === 'pranzo' ? '0 1 auto' : 1 }
+          },
+            'Pranzo',
+            mainTab === 'pranzo' && e('span', { style: { position: 'absolute', left: '30%', right: '30%', bottom: '2px', height: '3px', background: theme.accent, borderRadius: '2px' }})
           )
         ),
         e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' }},
@@ -613,7 +665,7 @@ function App() {
       ),
 
       e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '12px 20px', background: theme.navBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
-        (mainTab === 'kitchen' ? kitchenCats : mainTab === 'bar' ? barCats : aperitivoCats).map(cat =>
+        (mainTab === 'kitchen' ? kitchenCats : mainTab === 'bar' ? barCats : mainTab === 'pranzo' ? pranzoCats : aperitivoCats).map(cat =>
           e('button', {
             key: cat,
             onClick: () => setSubCategory(cat),
