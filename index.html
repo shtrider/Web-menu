@@ -571,7 +571,7 @@ function App() {
         if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; });
       });
     });
-    const fixed = {};
+    const fixed = { ...dualMenu }; // keep top-level keys like _coperto
     ['default', 'sunday'].forEach(mode => {
       if (!dualMenu[mode]) return;
       fixed[mode] = { ...dualMenu[mode] };
@@ -594,7 +594,7 @@ function App() {
         if (Array.isArray(items)) items.forEach(i => { if (typeof i.id === 'number' && !isNaN(i.id) && i.id > maxId) maxId = i.id; });
       });
     });
-    const result = {};
+    const result = { ...dualMenu }; // keep top-level keys like _coperto
     ['default', 'sunday'].forEach(mode => {
       if (!dualMenu[mode]) { result[mode] = dualMenu[mode]; return; }
       result[mode] = { ...dualMenu[mode] };
@@ -649,6 +649,7 @@ function App() {
         default: { ...defaultMenu, ...barItems },
         sunday: { ...sundayMenu, aperitivo: defaultMenu.aperitivo, pranzo: defaultMenu.pranzo, ...barItems }
       };
+      if (rawMenu._coperto) dual._coperto = rawMenu._coperto;
     }
     let sp = data.specials;
     if (Array.isArray(sp)) sp = { default: sp, sunday: sp };
