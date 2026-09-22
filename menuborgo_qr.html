@@ -370,7 +370,6 @@ function App() {
   const [mainTab, setMainTab] = useState(() => {
     const now = new Date();
     const mins = now.getHours() * 60 + now.getMinutes();
-    if (mins >= 12 * 60 && mins < 15 * 60) return 'pranzo';
     if (mins >= 17 * 60 + 30 && mins < 19 * 60 + 30) return 'aperitivo';
     return 'kitchen';
   });
@@ -380,11 +379,11 @@ function App() {
   const [scrolled, setScrolled] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
   const [coperto, setCoperto] = useState(null);
+  const [hotelMode, setHotelMode] = useState(false);
 
   const kitchenCats = ['appetizers', 'primi', 'secondi', 'contorni', 'dessert'];
   const barCats = ['softdrinks', 'wine', 'beer', 'cocktails', 'spirits', 'amari', 'caffetteria'];
   const aperitivoCats = ['aperitivo'];
-  const pranzoCats = ['pranzo'];
 
   const [nowTick, setNowTick] = useState(0);
   useEffect(() => {
@@ -392,7 +391,7 @@ function App() {
     return () => clearInterval(t);
   }, []);
 
-  const _copertoShow = coperto && coperto.enabled && kitchenCats.includes(subCategory);
+  const _copertoShow = coperto && coperto.enabled && !hotelMode && kitchenCats.includes(subCategory);
   const renderCoperto = (style) => {
     if (!_copertoShow || coperto.style !== style) return null;
     const txt = (coperto.text && coperto.text[lang]) || coperto.text?.it || '';
@@ -453,20 +452,24 @@ function App() {
         const data = await supabase.getMenu();
         if (data) {
           const rawMenu = data.menu || {};
-          // Always use the 'default' (Borgo) menu
+          // Follow the active mode: hotel (sunday) menu or Borgo (default) menu,
+          // honouring the admin override set from the main menu page.
+          const ov = data.menu_override;
+          const isSunday = ov === 'sunday' ? true : ov === 'default' ? false : new Date().getDay() === 0;
+          const modeKey = isSunday ? 'sunday' : 'default';
+          setHotelMode(isSunday);
           let menu;
           if (rawMenu.default && typeof rawMenu.default === 'object' && (rawMenu.default.appetizers || rawMenu.default.softdrinks)) {
-            menu = rawMenu.default;
+            menu = rawMenu[modeKey] || rawMenu.default;
           } else {
             menu = rawMenu;
           }
           if (!menu.aperitivo) menu.aperitivo = defaultMenu.aperitivo;
-          if (!menu.pranzo) menu.pranzo = defaultMenu.pranzo;
           setMenuData(inlineSubcategories(menu));
           if (rawMenu._coperto) setCoperto(rawMenu._coperto);
 
           let ua = data.unavailable_items;
-          if (ua && typeof ua === 'object' && !Array.isArray(ua)) ua = ua.default || [];
+          if (ua && typeof ua === 'object' && !Array.isArray(ua)) ua = ua[modeKey] || [];
           setUnavailableItems(Array.isArray(ua) ? ua : []);
         }
       } catch (error) {
@@ -493,8 +496,6 @@ function App() {
       setSubCategory('softdrinks');
     } else if (mainTab === 'aperitivo' && !aperitivoCats.includes(subCategory)) {
       setSubCategory('aperitivo');
-    } else if (mainTab === 'pranzo' && !pranzoCats.includes(subCategory)) {
-      setSubCategory('pranzo');
     }
   }, [mainTab]);
 
@@ -617,7 +618,6 @@ function App() {
             return [
               tabBtn('kitchen', lang === 'it' ? 'Cucina' : lang === 'es' ? 'Cocina' : lang === 'fr' ? 'Cuisine' : lang === 'de' ? 'Küche' : lang === 'zh' ? '厨房' : lang === 'ja' ? 'キッチン' : 'Kitchen'),
               tabBtn('bar', 'Bar'),
-              tabBtn('pranzo', lang === 'it' ? 'Pranzo' : lang === 'es' ? 'Almuerzo' : lang === 'fr' ? 'Déjeuner' : lang === 'de' ? 'Mittag' : lang === 'zh' ? '午餐' : lang === 'ja' ? 'ランチ' : 'Lunch', '12–15'),
               tabBtn('aperitivo', 'Aperitivo', '17:30–19:30')
             ];
           })()
@@ -646,7 +646,7 @@ function App() {
       ),
 
       e('div', { className: 'cat-pills', style: { display: 'flex', gap: '8px', padding: '12px 20px', background: theme.navBg, overflowX: 'auto', WebkitOverflowScrolling: 'touch', flexWrap: 'nowrap', borderBottom: '1px solid ' + theme.navBorder }},
-        (mainTab === 'kitchen' ? kitchenCats : mainTab === 'bar' ? barCats : mainTab === 'pranzo' ? pranzoCats : aperitivoCats).map(cat =>
+        (mainTab === 'kitchen' ? kitchenCats : mainTab === 'bar' ? barCats : aperitivoCats).map(cat =>
           e('button', {
             key: cat,
             onClick: () => setSubCategory(cat),
